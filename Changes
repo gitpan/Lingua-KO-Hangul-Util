@@ -1,7 +1,10 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.08  Tue Dec 11 22:53:07 2001
+	- add a test and modify Makefile.PL.
+
 0.07  Tue Nov 13 00:31:51 2001
-	- modify tests (thanks, Andreas Marcel Riechert <riechert@pobox.com>)
+	- modify tests (thanks, Andreas Marcel Riechert)
 
 0.06  Thu Nov 01 22:22:42 2001
 	- add getHangulComposite()

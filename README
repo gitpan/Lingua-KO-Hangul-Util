@@ -1,4 +1,4 @@
-Lingua/KO/Hangul/Util version 0.07
+Lingua/KO/Hangul/Util version 0.08
 ==================================
 
 SYNOPSIS
@@ -30,6 +30,15 @@ If you have a C compiler and want to use the XS version,
 type the following:
 
    perl Makefile.PL xs
+   make
+   make test
+   make install
+
+If you decide to install the NoXS version after trying to build the XS,
+type the following:
+
+   make clean
+   perl Makefile.PL noxs
    make
    make test
    make install

@@ -6,7 +6,7 @@
 use Test;
 use strict;
 use warnings;
-BEGIN { plan tests => 80 };
+BEGIN { plan tests => 81 };
 use Lingua::KO::Hangul::Util;
 ok(1); # If we made it this far, we're ok.
 
@@ -149,4 +149,25 @@ ok(getHangulComposite(12, 0x0300), undef);
 ok(getHangulComposite(0x0055, 0xFF00), undef);
 ok(getHangulComposite(0x1100, 0x11AF), undef);
 ok(getHangulComposite(0x1173, 0x11AF), undef);
+
+
+##
+## charnames: 1 test
+##
+BEGIN {
+    use charnames qw(:full);  # for $charnames::hint_bits
+
+    $^H |= $charnames::hint_bits;
+    $^H{charnames} = sub {
+	my $name = shift;
+	my $ord  = parseHangulName($name);
+	return $ord ? pack('U', $ord) : charnames::charnames($name);
+    };
+}
+
+use charnames ();
+
+ok( strhex("\N{HIRAGANA LETTER GA} A \N{HANGUL SYLLABLE A}\N{HANGUL SYLLABLE GA} \N{LATIN CAPITAL LETTER A}"),
+  '304C:0020:0041:0020:C544:AC00:0020:0041',
+);
 

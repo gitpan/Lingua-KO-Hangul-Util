@@ -4,7 +4,6 @@ MANIFEST
 MANIFEST.NXS
 README
 hangul.h
-Util.pod
 Util.pm
 Util.xs
 Util.pm.NXS
