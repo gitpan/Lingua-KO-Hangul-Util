@@ -3,13 +3,13 @@
  *
  *   This file is for the Perl module Lingua::KO::Hangul::Util.
  *
- * last modified  Sun Nov 11 11:31:25 2001
+ * last modified  Sun Apr 14 10:48:12 2002
  *
 
-AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.orgE
+AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.org
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.

@@ -19,7 +19,7 @@ require AutoLoader;
     parseHangulName
     getHangulComposite
 );
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 bootstrap Lingua::KO::Hangul::Util $VERSION;
 
@@ -70,14 +70,12 @@ Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
 
 =over 4
 
-=item C<$string_decomposed = decomposeHangul($codepoint)>
+=item C<$string_decomposed = decomposeHangul($code_point)>
 
-=item C<@codepoints = decomposeHangul($codepoint)>
+=item C<@codepoints = decomposeHangul($code_point)>
 
-Accepts unicode codepoint integer.
-
-If the specified codepoint is of a Hangul Syllable,
-returns a list of codepoints (in a list context)
+If the specified code point is of a Hangul Syllable,
+returns a list of code points (in a list context)
 or a UTF-8 string (in a scalar context)
 of its decomposition.
 
@@ -94,7 +92,7 @@ Otherwise, returns false (empty string or empty list).
 
 =item C<$string_composed = composeHangul($src_string)>
 
-=item C<@codepoints_composed = composeHangul($src_string)>
+=item C<@code_points_composed = composeHangul($src_string)>
 
 Any sequence of an initial Jamo C<L> and a medial Jamo C<V>
 is composed to a syllable C<LV>;
@@ -108,10 +106,10 @@ are unaffected.
     returns "Hangul \x{AC00}\x{AE00}." or
      (0x48,0x61,0x6E,0x67,0x75,0x6C,0x20,0xAC00,0xAE00,0x2E);
 
-=item C<$uv_composite = getHangulComposite($uv_here, $uv_next)>
+=item C<$code_point_composite = getHangulComposite($code_point_here, $code_point_next)>
 
-Return the unsigned integer codepoint of the composite
-if both two codepoints, C<$uv_here> and C<$uv_next>,
+Return the codepoint of the composite
+if both two code points, C<$code_point_here> and C<$code_point_next>,
 are in Hangul, and composable.
 
 Otherwise, returns C<undef>.
@@ -122,9 +120,9 @@ Otherwise, returns C<undef>.
 
 =over 4
 
-=item C<$name = getHangulName($codepoint)>
+=item C<$name = getHangulName($code_point)>
 
-If the specified codepoint is of a Hangul Syllable,
+If the specified code point is of a Hangul Syllable,
 returns its name; otherwise returns undef.
 
    getHangulName(0xAC00) returns "HANGUL SYLLABLE GA";
@@ -133,7 +131,7 @@ returns its name; otherwise returns undef.
 =item C<$codepoint = parseHangulName($name)>
 
 If the specified name is of a Hangul Syllable,
-returns its codepoint; otherwise returns undef. 
+returns its code point; otherwise returns undef. 
 
    parseHangulName("HANGUL SYLLABLE GEUL") returns 0xAE00;
 
@@ -161,7 +159,7 @@ SADAHIRO Tomoyuki
   bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.

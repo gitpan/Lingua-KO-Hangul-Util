@@ -1,5 +1,8 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.09  Sun Apr 14 10:48:12 2002
+	- The XS now uses utf8n_to_uvuni() instead of utf8n_to_uvchr().
+
 0.08  Tue Dec 11 22:53:07 2001
 	- add a test and modify Makefile.PL.
 

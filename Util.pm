@@ -16,7 +16,7 @@ our @EXPORT = qw(
     parseHangulName
     getHangulComposite
 );
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 our @JamoL = ( # Initial (HANGUL CHOSEONG)
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
@@ -40,17 +40,13 @@ our $BlockName = "HANGUL SYLLABLE ";
 use constant SBase  => 0xAC00;
 use constant SFinal => 0xD7A3; # SBase -1 + SCount
 use constant SCount =>  11172; # LCount * NCount
-
 use constant NCount =>    588; # VCount * TCount
-
 use constant LBase  => 0x1100;
 use constant LFinal => 0x1112;
 use constant LCount =>     19; # scalar @JamoL
-
 use constant VBase  => 0x1161;
 use constant VFinal => 0x1175;
 use constant VCount =>     21; # scalar @JamoV
-
 use constant TBase  => 0x11A7;
 use constant TFinal => 0x11C2;
 use constant TCount =>     28; # scalar @JamoT
@@ -61,14 +57,10 @@ our(%CodeL, %CodeV, %CodeT);
 @CodeT{@JamoT} = 0 .. TCount-1;
 
 sub Hangul_IsS  ($) { SBase <= $_[0] && $_[0] <= SFinal }
-
 sub Hangul_IsL  ($) { LBase <= $_[0] && $_[0] <= LFinal }
-
 sub Hangul_IsV  ($) { VBase <= $_[0] && $_[0] <= VFinal }
-
 sub Hangul_IsT  ($) { TBase  < $_[0] && $_[0] <= TFinal }
 		    # TBase <= $_[0] is false!
-
 sub Hangul_IsLV ($) {
     SBase <= $_[0] && $_[0] <= SFinal && (($_[0] - SBase ) % TCount) == 0;
 }
@@ -93,12 +85,12 @@ sub parseHangulName {
 }
 
 sub getHangulComposite ($$) {
-    if(Hangul_IsL($_[0]) && Hangul_IsV($_[1])) {
+    if (Hangul_IsL($_[0]) && Hangul_IsV($_[1])) {
 	my $lindex = $_[0] - LBase;
 	my $vindex = $_[1] - VBase;
 	return (SBase + ($lindex * VCount + $vindex) * TCount);
     }
-    if(Hangul_IsLV($_[0]) && Hangul_IsT($_[1])) {
+    if (Hangul_IsLV($_[0]) && Hangul_IsT($_[1])) {
 	return($_[0] + $_[1] - TBase);
     }
     return undef;
@@ -126,7 +118,9 @@ sub decomposeHangul {
 #
 sub composeHangul {
     my $str = shift;
-    if(! length $str) { return wantarray ? () : $str }
+    if (! length $str) {
+	return wantarray ? () : $str;
+    }
     my(@ret);
 
     foreach my $ch (unpack('U*', $str)) # Makes list! The string be short!
@@ -135,7 +129,7 @@ sub composeHangul {
 
       # 1. check to see if $ret[-1] is L and $ch is V.
 
-      if(Hangul_IsL($ret[-1]) && Hangul_IsV($ch)) {
+      if (Hangul_IsL($ret[-1]) && Hangul_IsV($ch)) {
           $ret[-1] -= LBase; # LIndex
           $ch      -= VBase; # VIndex
           $ret[-1]  = SBase + ($ret[-1] * VCount + $ch) * TCount;
@@ -144,7 +138,7 @@ sub composeHangul {
 
       # 2. check to see if $ret[-1] is LV and $ch is T.
 
-      if(Hangul_IsLV($ret[-1]) && Hangul_IsT($ch)) {
+      if (Hangul_IsLV($ret[-1]) && Hangul_IsT($ch)) {
           $ret[-1] += $ch - TBase; # + TIndex
           next; # discard $ch
       }
@@ -202,14 +196,12 @@ Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
 
 =over 4
 
-=item C<$string_decomposed = decomposeHangul($codepoint)>
+=item C<$string_decomposed = decomposeHangul($code_point)>
 
-=item C<@codepoints = decomposeHangul($codepoint)>
+=item C<@codepoints = decomposeHangul($code_point)>
 
-Accepts unicode codepoint integer.
-
-If the specified codepoint is of a Hangul Syllable,
-returns a list of codepoints (in a list context)
+If the specified code point is of a Hangul Syllable,
+returns a list of code points (in a list context)
 or a UTF-8 string (in a scalar context)
 of its decomposition.
 
@@ -226,7 +218,7 @@ Otherwise, returns false (empty string or empty list).
 
 =item C<$string_composed = composeHangul($src_string)>
 
-=item C<@codepoints_composed = composeHangul($src_string)>
+=item C<@code_points_composed = composeHangul($src_string)>
 
 Any sequence of an initial Jamo C<L> and a medial Jamo C<V>
 is composed to a syllable C<LV>;
@@ -240,10 +232,10 @@ are unaffected.
     returns "Hangul \x{AC00}\x{AE00}." or
      (0x48,0x61,0x6E,0x67,0x75,0x6C,0x20,0xAC00,0xAE00,0x2E);
 
-=item C<$uv_composite = getHangulComposite($uv_here, $uv_next)>
+=item C<$code_point_composite = getHangulComposite($code_point_here, $code_point_next)>
 
-Return the unsigned integer codepoint of the composite
-if both two codepoints, C<$uv_here> and C<$uv_next>,
+Return the codepoint of the composite
+if both two code points, C<$code_point_here> and C<$code_point_next>,
 are in Hangul, and composable.
 
 Otherwise, returns C<undef>.
@@ -254,9 +246,9 @@ Otherwise, returns C<undef>.
 
 =over 4
 
-=item C<$name = getHangulName($codepoint)>
+=item C<$name = getHangulName($code_point)>
 
-If the specified codepoint is of a Hangul Syllable,
+If the specified code point is of a Hangul Syllable,
 returns its name; otherwise returns undef.
 
    getHangulName(0xAC00) returns "HANGUL SYLLABLE GA";
@@ -265,7 +257,7 @@ returns its name; otherwise returns undef.
 =item C<$codepoint = parseHangulName($name)>
 
 If the specified name is of a Hangul Syllable,
-returns its codepoint; otherwise returns undef. 
+returns its code point; otherwise returns undef. 
 
    parseHangulName("HANGUL SYLLABLE GEUL") returns 0xAE00;
 
@@ -293,7 +285,7 @@ SADAHIRO Tomoyuki
   bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.
@@ -309,4 +301,3 @@ Annex 10: Hangul, in Unicode Normalization Forms (UAX #15).
 =back
 
 =cut
-
