@@ -1,5 +1,16 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.20  Mon Sep 08 21:38:02 2003
+    - added decomposeJamo(), composeJamo(), decomposeSyllable(),
+      composeSyllable(), and decomposeFull().
+    - changed INSTALLATION (cf. README).
+    - simplified Makefile.PL.
+    - modified how to build XSUB edition (sorry for inconvenience).
+      The purePerl-XSUB converter is now provided as two perl script files,
+      named "enableXS" and "disableXS".
+      (no longer <perl Makefile.PL xs> and <perl Makefile.PL noxs>.)
+    - added fulldec.t and unary.t.
+
 0.11  Sat May 11 11:59:36 2002
 	- modify a test for a custom translator on charnames.
 
@@ -37,4 +48,3 @@ Revision history for Perl extension Lingua::KO::Hangul::Util.
 0.01  Fri Aug  3 21:25:11 2001
 	- original version; created by h2xs 1.21 with options
 		-A -X -n Lingua::KO::Hangul::Util
-

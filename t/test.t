@@ -1,70 +1,139 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl test.pl'
-
-#########################
-
 use Test;
 use strict;
 use warnings;
-BEGIN { plan tests => 81 };
-use Lingua::KO::Hangul::Util;
+BEGIN { plan tests => 140 }
+
+use Lingua::KO::Hangul::Util qw(:all);
 ok(1); # If we made it this far, we're ok.
 
 #########################
 
 my($str, @ary, $NG, $aryref);
 
-sub strhex { join ':', map sprintf("%04X", $_), unpack 'U*', shift }
-sub strfy  { join ':', map sprintf("%04X", $_), @_ }
+sub strhex {
+    join ':', map sprintf("%04X", $_), unpack 'U*', pack('U*').shift;
+}
+sub strfy  {
+    join ':', map sprintf("%04X", $_), @_;
+}
 
 ##
-## decomposeHangul: 7 tests
+## decomposeHangul: 8 tests
 ##
 ok(strfy(decomposeHangul(0xAC00)), "1100:1161");
 ok(strfy(decomposeHangul(0xAE00)), "1100:1173:11AF");
 ok(strhex(scalar decomposeHangul(0xAC00)), "1100:1161");
 ok(strhex(scalar decomposeHangul(0xAE00)), "1100:1173:11AF");
+ok(strhex(scalar decomposeHangul(0xAF71)), "1101:116B:11B4");
 ok(scalar decomposeHangul(0x0041), undef);
 ok(scalar decomposeHangul(0x0000), undef);
 @ary = decomposeHangul(0x0000);
 ok(scalar @ary, 0);
 
+##
+## composeHangul: 8 tests
+##
+ok(strfy(composeHangul("")), "");
+ok(strfy(composeHangul("\0")), "0000");
+ok(strfy(composeHangul(" ")),  "0020");
+ok(strfy(composeHangul("A\x{1FF}\x{3042}")), "0041:01FF:3042");
+ok(strfy(composeHangul("\x{1101}\x{116B}\x{11B4}")), "AF71");
+ok(strfy(composeHangul("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")),
+	"AC00:11A7:AC01");
+ok(strfy(composeHangul("A\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}a")),
+	"0041:AC00:AE00:0061");
+ok(strfy(composeHangul("\x{AC00}\x{11A7}\x{1100}\x{0300}\x{1161}")),
+	"AC00:11A7:1100:0300:1161");
 
 ##
-## composeHangul: 14 tests
+## scalar composeHangul: 8 tests
 ##
-$NG = 0;
-foreach $aryref (
-   [ "", 0 ], ["\x00", 1 ], [ "\x20", 1 ], [ "ABC", 3 ],
-   [ "\x{3042}\x{1FF}", 2 ], [ "Perl", 4 ],
-) {
-  my @ary = composeHangul($aryref->[0]);
-  $NG++ unless @ary == $aryref->[1];
-}
-ok($NG, 0);
-
-ok(strfy(composeHangul("\x00")),    "0000");
-ok(strfy(composeHangul("\x20")),    "0020");
-ok(strfy(composeHangul("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")), "AC00:11A7:AC01");
-ok(strfy(composeHangul("\x40\x{1FF}")), "0040:01FF");
-ok(strfy(composeHangul("\x{3042}\x{3044}")), "3042:3044");
-ok(strfy(composeHangul("\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")),
-   "0040:AC00:AE00:0060");
-
 ok(strhex(scalar composeHangul("")), "");
-ok(strhex(scalar composeHangul("\x00")), "0000");
-ok(strhex(scalar composeHangul("\x20")), "0020");
-ok(strhex(scalar composeHangul("\x40\x{1FF}")), "0040:01FF");
+ok(strhex(scalar composeHangul("\0")), "0000");
+ok(strhex(scalar composeHangul(" ")),  "0020");
+ok(strhex(scalar composeHangul("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(scalar composeHangul("\x{1101}\x{116B}\x{11B4}")), "AF71");
 ok(strhex(scalar composeHangul("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")),
-   "AC00:11A7:AC01");
+	"AC00:11A7:AC01");
+ok(strhex(scalar composeHangul("A\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}a")),
+	"0041:AC00:AE00:0061");
+ok(strhex(scalar composeHangul("\x{AC00}\x{11A7}\x{1100}\x{0300}\x{1161}")),
+	"AC00:11A7:1100:0300:1161");
 
-ok(strhex(scalar composeHangul(
-    "\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")
-), "0040:AC00:AE00:0060");
+##
+## composeSyllable: 8 tests
+##
+ok(strhex(composeSyllable("")), "");
+ok(strhex(composeSyllable("\0")), "0000");
+ok(strhex(composeSyllable(" ")), "0020");
+ok(strhex(composeSyllable("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(composeSyllable("\x{1101}\x{116B}\x{11B4}")), "AF71");
+ok(strhex(composeSyllable("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")),
+	"AC00:11A7:AC01");
+ok(strhex(composeSyllable("A\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}a")),
+	"0041:AC00:AE00:0061");
+ok(strhex(composeSyllable("\x{AC00}\x{11A7}\x{1100}\x{0300}\x{1161}")),
+	"AC00:11A7:1100:0300:1161");
 
-ok(strhex(scalar composeHangul(
-  "\x{AC00}\x{11A7}\x{1100}\x{0300}\x{1161}")
-), "AC00:11A7:1100:0300:1161");
+##
+## decomposeSyllable: 8 tests
+##
+ok(strhex(decomposeSyllable("")), "");
+ok(strhex(decomposeSyllable("\0")), "0000");
+ok(strhex(decomposeSyllable(" ")), "0020");
+ok(strhex(decomposeSyllable("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(decomposeSyllable("\x{AE00}")), "1100:1173:11AF");
+ok(strhex(decomposeSyllable("\x{AF71}")), "1101:116B:11B4");
+ok(strhex(decomposeSyllable("\x{AC00}\x{11A7}\x{AC01}")),
+	"1100:1161:11A7:1100:1161:11A8");
+ok(strhex(decomposeSyllable("A\x{AC00}\x{AE00}a")),
+	"0041:1100:1161:1100:1173:11AF:0061");
+
+##
+## decomposeJamo: 7 tests
+##
+ok(strhex(decomposeJamo("")), "");
+ok(strhex(decomposeJamo("\0")), "0000");
+ok(strhex(decomposeJamo(" ")), "0020");
+ok(strhex(decomposeJamo("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(decomposeJamo("\x{AE00}")), "AE00");
+ok(strhex(decomposeJamo("\x{AF71}")), "AF71");
+ok(strhex(decomposeJamo("\x{1101}\x{116B}\x{11B4}")),
+	"1100:1100:1169:1161:1175:11AF:11C0");
+ok(strhex(decomposeJamo("\x{1101}\x{116A}\x{1175}\x{11B4}")),
+	"1100:1100:1169:1161:1175:11AF:11C0");
+
+##
+## composeJamo: 8 tests
+##
+ok(strhex(composeJamo("")), "");
+ok(strhex(composeJamo("\0")), "0000");
+ok(strhex(composeJamo(" ")), "0020");
+ok(strhex(composeJamo("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(composeJamo("\x{AE00}")), "AE00");
+ok(strhex(composeJamo("\x{AF71}")), "AF71");
+ok(strhex(composeJamo(
+	"\x{1100}\x{1100}\x{1169}\x{1161}\x{1175}\x{11AF}\x{11C0}")),
+	"1101:116B:11B4");
+ok(strhex(composeJamo(
+	"\x{1100}\x{1100}\x{116A}\x{1175}\x{11AF}\x{11C0}")),
+	"1101:116A:1175:11B4");
+
+##
+## decomposeFull: 8 tests
+##
+ok(strhex(decomposeFull("")), "");
+ok(strhex(decomposeFull("\0")), "0000");
+ok(strhex(decomposeFull(" ")), "0020");
+ok(strhex(decomposeFull("A\x{1FF}\x{3044}")), "0041:01FF:3044");
+ok(strhex(decomposeFull("\x{AE00}")), "1100:1173:11AF");
+ok(strhex(decomposeFull("\x{AF71}")),
+	"1100:1100:1169:1161:1175:11AF:11C0");
+ok(strhex(decomposeFull("\x{AC00}\x{11A7}\x{AC01}")),
+	"1100:1161:11A7:1100:1161:11A8");
+ok(strhex(decomposeFull("A\x{AC00}\x{AE00}a")),
+	"0041:1100:1161:1100:1173:11AF:0061");
+
 
 ##
 ## getHangulName: 11 tests
@@ -118,20 +187,30 @@ ok(parseHangulName('HANGUL SYLLABLE TEE'), undef);
 ok(parseHangulName('HANGUL SYLLABLE SHA'), undef);
 
 ##
-## round trip : 2 tests
+## round trip : 18 tests
 ##
-$NG = 0;
-foreach my $i (0xAC00..0xD7A3){
-  $NG ++ if $i != parseHangulName(getHangulName($i));
-}
-ok($NG, 0);
+for my $r (
+    [0xAC00,0xAFFF],   [0xB000,0xB7FF],
+    [0xB800,0xBFFF],   [0xC000,0xC7FF],
+    [0xC800,0xCFFF],   [0xD000,0xD7A3]) {
+    $NG = 0;
+    for (my $i = $r->[0]; $i <= $r->[1]; $i++) {
+	$NG ++ if $i != parseHangulName(getHangulName($i));
+    }
+    ok($NG, 0);
 
-$NG = 0;
-foreach my $i (0xAC00..0xD7A3){
-  $NG ++ if $i != (composeHangul scalar decomposeHangul($i))[0];
-}
-ok($NG, 0);
+    $NG = 0;
+    for (my $i = $r->[0]; $i <= $r->[1]; $i++) {
+	$NG ++ if $i != (composeHangul scalar decomposeHangul($i))[0];
+    }
+    ok($NG, 0);
 
+    $NG = 0;
+    for (my $i = $r->[0]; $i <= $r->[1]; $i++) {
+	$NG ++ if $i != ord composeSyllable decomposeSyllable(chr $i);
+    }
+    ok($NG, 0);
+}
 
 ##
 ## getHangulComposite: 13 tests

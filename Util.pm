@@ -3,12 +3,20 @@ package Lingua::KO::Hangul::Util;
 use 5.006;
 use strict;
 use warnings;
+use Carp;
 
 require Exporter;
-
+our $VERSION = '0.20';
+our $PACKAGE = __PACKAGE__;
 our @ISA = qw(Exporter);
-our %EXPORT_TAGS = ();
-our @EXPORT_OK = ();
+
+our @EXPORT_OK = qw(
+    decomposeSyllable
+    composeSyllable
+    decomposeJamo
+    composeJamo
+    decomposeFull
+);
 our @EXPORT = qw(
     decomposeHangul
     composeHangul
@@ -16,26 +24,32 @@ our @EXPORT = qw(
     parseHangulName
     getHangulComposite
 );
-our $VERSION = '0.11';
+our %EXPORT_TAGS = (
+    'all' => [ @EXPORT, @EXPORT_OK ],
+);
 
-our @JamoL = ( # Initial (HANGUL CHOSEONG)
+#####
+
+my @JamoL = ( # Initial (HANGUL CHOSEONG)
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
     "S", "SS", "", "J", "JJ", "C", "K", "T", "P", "H",
   );
 
-our @JamoV = ( # Medial  (HANGUL JUNGSEONG)
+my @JamoV = ( # Medial  (HANGUL JUNGSEONG)
     "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O",
     "WA", "WAE", "OE", "YO", "U", "WEO", "WE", "WI",
     "YU", "EU", "YI", "I",
   );
 
-our @JamoT = ( # Final    (HANGUL JONGSEONG)
+my @JamoT = ( # Final    (HANGUL JONGSEONG)
     "", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM",
     "LB", "LS", "LT", "LP", "LH", "M", "B", "BS",
     "S", "SS", "NG", "J", "C", "K", "T", "P", "H",
   );
 
-our $BlockName = "HANGUL SYLLABLE ";
+my $BlockName = "HANGUL SYLLABLE ";
+
+#####
 
 use constant SBase  => 0xAC00;
 use constant SFinal => 0xD7A3; # SBase -1 + SCount
@@ -50,12 +64,18 @@ use constant VCount =>     21; # scalar @JamoV
 use constant TBase  => 0x11A7;
 use constant TFinal => 0x11C2;
 use constant TCount =>     28; # scalar @JamoT
+use constant JBase  => 0x1100;
+use constant JFinal => 0x11FF;
+use constant JCount =>    256;
 
-our(%CodeL, %CodeV, %CodeT);
+my(%CodeL, %CodeV, %CodeT);
 @CodeL{@JamoL} = 0 .. LCount-1;
 @CodeV{@JamoV} = 0 .. VCount-1;
 @CodeT{@JamoT} = 0 .. TCount-1;
 
+#####
+
+sub Hangul_IsJ  ($) { JBase <= $_[0] && $_[0] <= JFinal }
 sub Hangul_IsS  ($) { SBase <= $_[0] && $_[0] <= SFinal }
 sub Hangul_IsL  ($) { LBase <= $_[0] && $_[0] <= LFinal }
 sub Hangul_IsV  ($) { VBase <= $_[0] && $_[0] <= VFinal }
@@ -65,7 +85,217 @@ sub Hangul_IsLV ($) {
     SBase <= $_[0] && $_[0] <= SFinal && (($_[0] - SBase ) % TCount) == 0;
 }
 
-sub getHangulName {
+#####
+
+# separator is a semicolon, ';'.
+my %Map12;   # ("integer;integer" => integer)
+my %Map123;  # ("integer;integer;integer" => integer)
+
+my %Decomp = (
+0x1101 => [0x1100, 0x1100],
+0x1104 => [0x1103, 0x1103],
+0x1108 => [0x1107, 0x1107],
+0x110A => [0x1109, 0x1109],
+0x110D => [0x110C, 0x110C],
+0x1113 => [0x1102, 0x1100],
+0x1114 => [0x1102, 0x1102],
+0x1115 => [0x1102, 0x1103],
+0x1116 => [0x1102, 0x1107],
+0x1117 => [0x1103, 0x1100],
+0x1118 => [0x1105, 0x1102],
+0x1119 => [0x1105, 0x1105],
+0x111A => [0x1105, 0x1112],
+0x111B => [0x1105, 0x110B],
+0x111C => [0x1106, 0x1107],
+0x111D => [0x1106, 0x110B],
+0x111E => [0x1107, 0x1100],
+0x111F => [0x1107, 0x1102],
+0x1120 => [0x1107, 0x1103],
+0x1121 => [0x1107, 0x1109],
+0x1122 => [0x1107, 0x1109, 0x1100],
+0x1123 => [0x1107, 0x1109, 0x1103],
+0x1124 => [0x1107, 0x1109, 0x1107],
+0x1125 => [0x1107, 0x1109, 0x1109],
+0x1126 => [0x1107, 0x1109, 0x110C],
+0x1127 => [0x1107, 0x110C],
+0x1128 => [0x1107, 0x110E],
+0x1129 => [0x1107, 0x1110],
+0x112A => [0x1107, 0x1111],
+0x112B => [0x1107, 0x110B],
+0x112C => [0x1107, 0x1107, 0x110B],
+0x112D => [0x1109, 0x1100],
+0x112E => [0x1109, 0x1102],
+0x112F => [0x1109, 0x1103],
+0x1130 => [0x1109, 0x1105],
+0x1131 => [0x1109, 0x1106],
+0x1132 => [0x1109, 0x1107],
+0x1133 => [0x1109, 0x1107, 0x1100],
+0x1134 => [0x1109, 0x1109, 0x1109],
+0x1135 => [0x1109, 0x110B],
+0x1136 => [0x1109, 0x110C],
+0x1137 => [0x1109, 0x110E],
+0x1138 => [0x1109, 0x110F],
+0x1139 => [0x1109, 0x1110],
+0x113A => [0x1109, 0x1111],
+0x113B => [0x1109, 0x1112],
+0x113D => [0x113C, 0x113C],
+0x113F => [0x113E, 0x113E],
+0x1141 => [0x110B, 0x1100],
+0x1142 => [0x110B, 0x1103],
+0x1143 => [0x110B, 0x1106],
+0x1144 => [0x110B, 0x1107],
+0x1145 => [0x110B, 0x1109],
+0x1146 => [0x110B, 0x1140],
+0x1147 => [0x110B, 0x110B],
+0x1148 => [0x110B, 0x110C],
+0x1149 => [0x110B, 0x110E],
+0x114A => [0x110B, 0x1110],
+0x114B => [0x110B, 0x1111],
+0x114D => [0x110C, 0x110B],
+0x114F => [0x114E, 0x114E],
+0x1151 => [0x1150, 0x1150],
+0x1152 => [0x110E, 0x110F],
+0x1153 => [0x110E, 0x1112],
+0x1156 => [0x1111, 0x1107],
+0x1157 => [0x1111, 0x110B],
+0x1158 => [0x1112, 0x1112],
+0x1162 => [0x1161, 0x1175],
+0x1164 => [0x1163, 0x1175],
+0x1166 => [0x1165, 0x1175],
+0x1168 => [0x1167, 0x1175],
+0x116A => [0x1169, 0x1161],
+0x116B => [0x1169, 0x1161, 0x1175],
+0x116C => [0x1169, 0x1175],
+0x116F => [0x116E, 0x1165],
+0x1170 => [0x116E, 0x1165, 0x1175],
+0x1171 => [0x116E, 0x1175],
+0x1174 => [0x1173, 0x1175],
+0x1176 => [0x1161, 0x1169],
+0x1177 => [0x1161, 0x116E],
+0x1178 => [0x1163, 0x1169],
+0x1179 => [0x1163, 0x116D],
+0x117A => [0x1165, 0x1169],
+0x117B => [0x1165, 0x116E],
+0x117C => [0x1165, 0x1173],
+0x117D => [0x1167, 0x1169],
+0x117E => [0x1167, 0x116E],
+0x117F => [0x1169, 0x1165],
+0x1180 => [0x1169, 0x1165, 0x1175],
+0x1181 => [0x1169, 0x1167, 0x1175],
+0x1182 => [0x1169, 0x1169],
+0x1183 => [0x1169, 0x116E],
+0x1184 => [0x116D, 0x1163],
+0x1185 => [0x116D, 0x1163, 0x1175],
+0x1186 => [0x116D, 0x1167],
+0x1187 => [0x116D, 0x1169],
+0x1188 => [0x116D, 0x1175],
+0x1189 => [0x116E, 0x1161],
+0x118A => [0x116E, 0x1161, 0x1175],
+0x118B => [0x116E, 0x1165, 0x1173],
+0x118C => [0x116E, 0x1167, 0x1175],
+0x118D => [0x116E, 0x116E],
+0x118E => [0x1172, 0x1161],
+0x118F => [0x1172, 0x1165],
+0x1190 => [0x1172, 0x1165, 0x1175],
+0x1191 => [0x1172, 0x1167],
+0x1192 => [0x1172, 0x1167, 0x1175],
+0x1193 => [0x1172, 0x116E],
+0x1194 => [0x1172, 0x1175],
+0x1195 => [0x1173, 0x116E],
+0x1196 => [0x1173, 0x1173],
+0x1197 => [0x1173, 0x1175, 0x116E],
+0x1198 => [0x1175, 0x1161],
+0x1199 => [0x1175, 0x1163],
+0x119A => [0x1175, 0x1169],
+0x119B => [0x1175, 0x116E],
+0x119C => [0x1175, 0x1173],
+0x119D => [0x1175, 0x119E],
+0x119F => [0x119E, 0x1165],
+0x11A0 => [0x119E, 0x116E],
+0x11A1 => [0x119E, 0x1175],
+0x11A2 => [0x119E, 0x119E],
+0x11A9 => [0x11A8, 0x11A8],
+0x11AA => [0x11A8, 0x11BA],
+0x11AC => [0x11AB, 0x11BD],
+0x11AD => [0x11AB, 0x11C2],
+0x11B0 => [0x11AF, 0x11A8],
+0x11B1 => [0x11AF, 0x11B7],
+0x11B2 => [0x11AF, 0x11B8],
+0x11B3 => [0x11AF, 0x11BA],
+0x11B4 => [0x11AF, 0x11C0],
+0x11B5 => [0x11AF, 0x11C1],
+0x11B6 => [0x11AF, 0x11C2],
+0x11B9 => [0x11B8, 0x11BA],
+0x11BB => [0x11BA, 0x11BA],
+0x11C3 => [0x11A8, 0x11AF],
+0x11C4 => [0x11A8, 0x11BA, 0x11A8],
+0x11C5 => [0x11AB, 0x11A8],
+0x11C6 => [0x11AB, 0x11AE],
+0x11C7 => [0x11AB, 0x11BA],
+0x11C8 => [0x11AB, 0x11EB],
+0x11C9 => [0x11AB, 0x11C0],
+0x11CA => [0x11AE, 0x11A8],
+0x11CB => [0x11AE, 0x11AF],
+0x11CC => [0x11AF, 0x11A8, 0x11BA],
+0x11CD => [0x11AF, 0x11AB],
+0x11CE => [0x11AF, 0x11AE],
+0x11CF => [0x11AF, 0x11AE, 0x11C2],
+0x11D0 => [0x11AF, 0x11AF],
+0x11D1 => [0x11AF, 0x11B7, 0x11A8],
+0x11D2 => [0x11AF, 0x11B7, 0x11BA],
+0x11D3 => [0x11AF, 0x11B8, 0x11BA],
+0x11D4 => [0x11AF, 0x11B8, 0x11C2],
+0x11D5 => [0x11AF, 0x11B8, 0x11BC],
+0x11D6 => [0x11AF, 0x11BA, 0x11BA],
+0x11D7 => [0x11AF, 0x11EB],
+0x11D8 => [0x11AF, 0x11BF],
+0x11D9 => [0x11AF, 0x11F9],
+0x11DA => [0x11B7, 0x11A8],
+0x11DB => [0x11B7, 0x11AF],
+0x11DC => [0x11B7, 0x11B8],
+0x11DD => [0x11B7, 0x11BA],
+0x11DE => [0x11B7, 0x11BA, 0x11BA],
+0x11DF => [0x11B7, 0x11EB],
+0x11E0 => [0x11B7, 0x11BE],
+0x11E1 => [0x11B7, 0x11C2],
+0x11E2 => [0x11B7, 0x11BC],
+0x11E3 => [0x11B8, 0x11AF],
+0x11E4 => [0x11B8, 0x11C1],
+0x11E5 => [0x11B8, 0x11C2],
+0x11E6 => [0x11B8, 0x11BC],
+0x11E7 => [0x11BA, 0x11A8],
+0x11E8 => [0x11BA, 0x11AE],
+0x11E9 => [0x11BA, 0x11AF],
+0x11EA => [0x11BA, 0x11B8],
+0x11EC => [0x11BC, 0x11A8],
+0x11ED => [0x11BC, 0x11A8, 0x11A8],
+0x11EE => [0x11BC, 0x11BC],
+0x11EF => [0x11BC, 0x11BF],
+0x11F1 => [0x11F0, 0x11BA],
+0x11F2 => [0x11F0, 0x11EB],
+0x11F3 => [0x11C1, 0x11B8],
+0x11F4 => [0x11C1, 0x11BC],
+0x11F5 => [0x11C2, 0x11AB],
+0x11F6 => [0x11C2, 0x11AF],
+0x11F7 => [0x11C2, 0x11B7],
+0x11F8 => [0x11C2, 0x11B8],
+);
+
+foreach my $char (sort {$a <=> $b} keys %Decomp) {
+    $char or croak "$PACKAGE : composition to NULL is not allowed";
+    my @dec = @{ $Decomp{$char} };
+    @dec == 2 || @dec == 3 or croak
+	sprintf "$PACKAGE : weird decomposition [%04X]", $char;
+    if (@dec == 2) {
+	$Map12{"$dec[0];$dec[1]"} = $char;
+    } else {
+	$Map123{"$dec[0];$dec[1];$dec[2]"} = $char;
+    }
+}
+
+#####
+
+sub getHangulName ($) {
     my $code = shift;
     return undef unless Hangul_IsS($code);
     my $SIndex = $code - SBase;
@@ -75,7 +305,7 @@ sub getHangulName {
     return "$BlockName$JamoL[$LIndex]$JamoV[$VIndex]$JamoT[$TIndex]";
 }
 
-sub parseHangulName {
+sub parseHangulName ($) {
     my $arg = shift;
     return undef unless $arg =~ s/$BlockName//o;
     return undef unless $arg =~ /^([^AEIOUWY]*)([AEIOUWY]+)([^AEIOUWY]*)$/;
@@ -96,7 +326,30 @@ sub getHangulComposite ($$) {
     return undef;
 }
 
-sub decomposeHangul {
+sub decomposeJamo ($) {
+    my $str = pack('U*').shift;
+    length $str or return $str;
+
+    my(@ret);
+    foreach my $ch (unpack('U*', $str)) {
+	push @ret, $Decomp{$ch} ? @{ $Decomp{$ch} } : ($ch);
+    }
+    return pack('U*', @ret);
+}
+
+sub decomposeSyllable ($) {
+    my $str = pack('U*').shift;
+    length $str or return $str;
+
+    my(@ret);
+    foreach my $ch (unpack('U*', $str)) {
+	my @r = decomposeHangul($ch);
+	push @ret, @r ? @r : ($ch);
+    }
+    return pack('U*', @ret);
+}
+
+sub decomposeHangul ($) {
     my $code = shift;
     return unless Hangul_IsS($code);
     my $SIndex = $code - SBase;
@@ -111,88 +364,157 @@ sub decomposeHangul {
     wantarray ? @ret : pack('U*', @ret);
 }
 
-#
-# To Do:
-#  s/(\p{JamoL}\p{JamoV})/toHangLV($1)/ge;
-#  s/(\p{HangLV}\p{JamoT})/toHangLVT($1)/ge;
-#
-sub composeHangul {
-    my $str = shift;
-    if (! length $str) {
-	return wantarray ? () : $str;
+sub composeJamo ($) {
+    my $str = pack('U*').shift;
+    length $str or return $str;
+
+    my @tmp = unpack('U*', $str);
+
+    for (my $i = 0; $i < @tmp; $i++) {
+	next unless Hangul_IsJ($tmp[$i]);
+
+	if ($tmp[$i + 2] && $Map123{"$tmp[$i];$tmp[$i+1];$tmp[$i+2]"}) {
+	    $tmp[$i] = $Map123{"$tmp[$i];$tmp[$i+1];$tmp[$i+2]"};
+	    $tmp[$i+1] = $tmp[$i+2] = undef;
+	    $i += 2;
+	}
+	elsif ($tmp[$i + 1] && $Map12{"$tmp[$i];$tmp[$i+1]"}) {
+	    $tmp[$i] = $Map12{"$tmp[$i];$tmp[$i+1]"};
+	    $tmp[$i+1] = undef;
+	    $i ++;
+	}
     }
+    return pack 'U*', grep defined, @tmp;
+}
+
+sub composeSyllable ($) {
+    my $str = pack('U*').shift;
+    length $str or return $str;
+
     my(@ret);
 
-    foreach my $ch (unpack('U*', $str)) # Makes list! The string be short!
-    {
-      push(@ret, $ch) and next unless @ret;
+    foreach my $ch (unpack('U*', $str)) {
+	push(@ret, $ch) and next unless @ret;
 
       # 1. check to see if $ret[-1] is L and $ch is V.
 
-      if (Hangul_IsL($ret[-1]) && Hangul_IsV($ch)) {
-          $ret[-1] -= LBase; # LIndex
-          $ch      -= VBase; # VIndex
-          $ret[-1]  = SBase + ($ret[-1] * VCount + $ch) * TCount;
-          next; # discard $ch
-      }
+	if (Hangul_IsL($ret[-1]) && Hangul_IsV($ch)) {
+	    $ret[-1] -= LBase; # LIndex
+	    $ch      -= VBase; # VIndex
+	    $ret[-1]  = SBase + ($ret[-1] * VCount + $ch) * TCount;
+	    next; # discard $ch
+	}
 
       # 2. check to see if $ret[-1] is LV and $ch is T.
 
-      if (Hangul_IsLV($ret[-1]) && Hangul_IsT($ch)) {
-          $ret[-1] += $ch - TBase; # + TIndex
-          next; # discard $ch
-      }
+	if (Hangul_IsLV($ret[-1]) && Hangul_IsT($ch)) {
+	    $ret[-1] += $ch - TBase; # + TIndex
+	    next; # discard $ch
+	}
 
       # 3. just append $ch
-      push(@ret, $ch);
+	push(@ret, $ch);
     }
-    wantarray ? @ret : pack('U*', @ret);
+
+    return pack('U*', @ret);
 }
+
+sub composeHangul ($) {
+    my $ret = composeSyllable(shift);
+    wantarray ? unpack('U*', $ret) : $ret;
+}
+
+
+sub decomposeFull ($) { decomposeJamo(decomposeSyllable(shift)) }
 
 1;
 __END__
 
 =head1 NAME
 
-Lingua::KO::Hangul::Util - utility functions for Hangul Syllables in Unicode
+Lingua::KO::Hangul::Util - utility functions for Hangul in Unicode
 
 =head1 SYNOPSIS
 
-  use Lingua::KO::Hangul::Util;
+  use Lingua::KO::Hangul::Util qw(:all);
 
-  decomposeHangul(0xAC00);
-    # (0x1100,0x1161) or "\x{1100}\x{1161}"
+  decomposeSyllable("\x{AC00}");          # "\x{1100}\x{1161}"
+  composeSyllable("\x{1100}\x{1161}");    # "\x{AC00}"
+  decomposeJamo("\x{1101}");              # "\x{1100}\x{1100}"
+  composeJamo("\x{1100}\x{1100}");        # "\x{1101}"
 
-  composeHangul("\x{1100}\x{1161}");
-    # "\x{AC00}"
-
-  getHangulName(0xAC00);
-    # "HANGUL SYLLABLE GA"
-
-  parseHangulName("HANGUL SYLLABLE GA");
-    # 0xAC00
+  getHangulName(0xAC00);                  # "HANGUL SYLLABLE GA"
+  parseHangulName("HANGUL SYLLABLE GA");  # 0xAC00
 
 =head1 DESCRIPTION
 
-A Hangul Syllable consists of Hangul Jamo.
+A Hangul syllable consists of Hangul Jamo (Hangul letters).
 
-Hangul Jamo are classified into three classes:
+Hangul letters are classified into three classes:
 
   CHOSEONG  (the initial sound) as a leading consonant (L),
   JUNGSEONG (the medial sound)  as a vowel (V),
   JONGSEONG (the final sound)   as a trailing consonant (T).
 
-Any Hangul Syllable is a composition of
-
-   i) CHOSEONG + JUNGSEONG (L + V)
-
-    or
-
-  ii) CHOSEONG + JUNGSEONG + JONGSEONG (L + V + T).
+Any Hangul syllable is a composition of (i) L + V, or (ii) L + V + T.
 
 Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
 
 =head2 Composition and Decomposition
+
+=over 4
+
+=item C<$resultant_string = decomposeSyllable($string)>
+
+Decomposes a precomposed syllable (C<LV> or C<LVT>)
+to a sequence of conjoining jamo (C<L + V> or C<L + V + T>)
+and returns the result as a string.
+
+Any characters other than Hangul Syllables are not affected.
+
+=item C<$resultant_string = composeSyllable($string)>
+
+Composes a sequence of conjoining jamo (C<L + V> or C<L + V + T>)
+to a precomposed syllable (C<LV> or C<LVT>) if possible,
+and returns the result as a string.
+A syllable C<LV> and final jamo C<T> are also composed.
+
+Any characters other than Hangul Jamo and Hangul Syllables
+are not affected.
+
+=item C<$resultant_string = decomposeJamo($string)>
+
+Decomposes a complex jamo to a sequence of simple jamo if possible,
+and returns the result as a string.
+Any characters other than complex jamo are not affected.
+
+  e.g.
+      CHOSEONG SIOS-PIEUP to CHOSEONG SIOS + PIEUP
+      JUNGSEONG AE        to JUNGSEONG A + I
+      JUNGSEONG WE        to JUNGSEONG U + EO + I
+      JONGSEONG SSANGSIOS to JONGSEONG SIOS + SIOS
+
+=item C<$resultant_string = composeJamo($string)>
+
+Composes a sequence of simple jamo (C<L1 + L2>, C<V1 + V2 + V3>, etc.)
+to a complex jamo if possible,
+and returns the result as a string.
+Any characters other than simple Jamo are not affected.
+
+  e.g.
+      CHOSEONG SIOS + PIEUP to CHOSEONG SIOS-PIEUP
+      JUNGSEONG A + I       to JUNGSEONG AE
+      JUNGSEONG U + EO + I  to JUNGSEONG WE
+      JONGSEONG SIOS + SIOS to JONGSEONG SSANGSIOS
+
+=item C<$resultant_string = decomposeFull($string)>
+
+Decomposes a syllable/complex jamo to a sequence of simple jamo.
+Equivalent to C<decomposeJamo(decomposeSyllable($string))>.
+
+=back
+
+=head2 Composition and Decomposition (Old-interface, deprecated!)
 
 =over 4
 
@@ -202,8 +524,7 @@ Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
 
 If the specified code point is of a Hangul Syllable,
 returns a list of code points (in a list context)
-or a UTF-8 string (in a scalar context)
-of its decomposition.
+or a string (in a scalar context) of its decomposition.
 
    decomposeHangul(0xAC00) # U+AC00 is HANGUL SYLLABLE GA.
       returns "\x{1100}\x{1161}" or (0x1100, 0x1161);
@@ -226,11 +547,10 @@ then any sequence of a syllable C<LV> and a final Jamo C<T>
 is composed to a syllable C<LVT>.
 
 Any characters other than Hangul Jamo and Hangul Syllables
-are unaffected.
+are not affected.
 
-   composeHangul("Hangul \x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}.")
-    returns "Hangul \x{AC00}\x{AE00}." or
-     (0x48,0x61,0x6E,0x67,0x75,0x6C,0x20,0xAC00,0xAE00,0x2E);
+   composeHangul("\x{1100}\x{1173}\x{11AF}.")
+   # returns "\x{AE00}." or (0xAE00,0x2E);
 
 =item C<$code_point_composite = getHangulComposite($code_point_here, $code_point_next)>
 
@@ -244,12 +564,16 @@ Otherwise, returns C<undef>.
 
 =head2 Hangul Syllable Name
 
+The following functions handle only a precomposed Hangul Syllable
+(from C<U+AC00> to C<U+D7A3>), but not a Hangul jamo
+or other Hangul-related character.
+
 =over 4
 
 =item C<$name = getHangulName($code_point)>
 
 If the specified code point is of a Hangul Syllable,
-returns its name; otherwise returns undef.
+returns its name; otherwise it returns undef.
 
    getHangulName(0xAC00) returns "HANGUL SYLLABLE GA";
    getHangulName(0x0041) returns undef.
@@ -257,7 +581,7 @@ returns its name; otherwise returns undef.
 =item C<$codepoint = parseHangulName($name)>
 
 If the specified name is of a Hangul Syllable,
-returns its code point; otherwise returns undef.
+returns its code point; otherwise it returns undef.
 
    parseHangulName("HANGUL SYLLABLE GEUL") returns 0xAE00;
 
@@ -280,12 +604,11 @@ By default,
 
 =head1 AUTHOR
 
-SADAHIRO Tomoyuki
+  SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-  bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.
@@ -297,6 +620,18 @@ SADAHIRO Tomoyuki
 =item http://www.unicode.org/unicode/reports/tr15
 
 Annex 10: Hangul, in Unicode Normalization Forms (UAX #15).
+
+=item http://www.unicode.org/Public/2.1-Update3/UnicodeData-2.1.8.txt
+
+Jamo Decomposition in Old Unicode
+
+=item http://std.dkuug.dk/JTC1/SC22/WG20/docs/N954.PDF
+
+ISO/IEC JTC1/SC22/WG20 N954: Paper by K. KIM:
+New canonical decomposition and composition processes for Hangeul
+
+(summary: http://std.dkuug.dk/JTC1/SC22/WG20/docs/N953.PDF )
+(cf. http://std.dkuug.dk/JTC1/SC22/WG20/docs/documents.html )
 
 =back
 

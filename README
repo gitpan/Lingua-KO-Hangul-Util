@@ -1,21 +1,17 @@
-Lingua/KO/Hangul/Util version 0.11
+Lingua/KO/Hangul/Util version 0.20
 ==================================
 
 SYNOPSIS
 
-  use Lingua::KO::Hangul::Util;
+  use Lingua::KO::Hangul::Util qw(:all);
 
-  decomposeHangul(0xAC00);
-    # (0x1100,0x1161) or "\x{1100}\x{1161}"
+  decomposeSyllable("\x{AC00}");          # "\x{1100}\x{1161}"
+  composeSyllable("\x{1100}\x{1161}");    # "\x{AC00}"
+  decomposeJamo("\x{1101}");              # "\x{1100}\x{1100}"
+  composeJamo("\x{1100}\x{1100}");        # "\x{1101}"
 
-  composeHangul("\x{1100}\x{1161}");
-    # "\x{AC00}"
-
-  getHangulName(0xAC00);
-    # "HANGUL SYLLABLE GA"
-
-  parseHangulName("HANGUL SYLLABLE GA");
-    # 0xAC00
+  getHangulName(0xAC00);                  # "HANGUL SYLLABLE GA"
+  parseHangulName("HANGUL SYLLABLE GA");  # 0xAC00
 
 INSTALLATION
 
@@ -26,36 +22,36 @@ To install this module type the following:
    make test
    make install
 
-If you have a C compiler and want to use the XS version,
-type the following:
+If you have a C compiler and want to use XSUB edition,
+type the following (!! "enableXS" must run before "Makefile.PL" !!):
 
-   perl Makefile.PL xs
+   perl enableXS
+   perl Makefile.PL
    make
    make test
    make install
 
-If you decide to install the NoXS version after trying to build the XS,
-type the following:
+If you decide to install pure Perl (i.e. non-XS) edition after trying
+to build XSUB, type the following:
 
    make clean
-   perl Makefile.PL noxs
+   perl disableXS
+   perl Makefile.PL
    make
    make test
    make install
 
 DEPENDENCIES
 
-Perl 5.006 or later
+  Perl 5.6.1 or later
 
 COPYRIGHT AND LICENCE
 
-SADAHIRO Tomoyuki
-
-  bqw10602@nifty.com
+SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
   http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This module is free software; you can redistribute it
   and/or modify it under the same terms as Perl itself.

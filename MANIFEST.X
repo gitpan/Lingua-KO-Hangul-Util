@@ -1,10 +1,15 @@
 Changes
 Makefile.PL
 MANIFEST
-MANIFEST.NXS
+MANIFEST.N
 README
+disableXS
+enableXS
 hangul.h
+mkheader
 Util.pm
 Util.xs
-Util.pm.NXS
+Util.pmN
+t/fulldec.t
 t/test.t
+t/unary.t

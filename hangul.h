@@ -3,13 +3,13 @@
  *
  *   This file is for the Perl module Lingua::KO::Hangul::Util.
  *
- * last modified  Sun Apr 14 10:48:12 2002
+ * last modified: Sun Sep  7 16:17:00 2003
  *
 
-AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.org
-  http://homepage1.nifty.com/nomenclator/perl/
+  AUTHOR:  SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
+           http://homepage1.nifty.com/nomenclator/perl/
 
-  Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
+  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.
@@ -37,12 +37,17 @@ AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.org
 #define Hangul_TFinal 0x11C2
 #define Hangul_TCount     28
 
+#define Hangul_JBase  0x1100
+#define Hangul_JFinal 0x11FF
+#define Hangul_JCount    256
+
 #define Hangul_IsS(u)  ((Hangul_SBase <= (u)) && ((u) <= Hangul_SFinal))
 #define Hangul_IsN(u)  (! (((u) - Hangul_SBase) % Hangul_TCount))
 #define Hangul_IsLV(u) (Hangul_IsS(u) && Hangul_IsN(u))
 #define Hangul_IsL(u)  ((Hangul_LBase <= (u)) && ((u) <= Hangul_LFinal))
 #define Hangul_IsV(u)  ((Hangul_VBase <= (u)) && ((u) <= Hangul_VFinal))
 #define Hangul_IsT(u)  ((Hangul_TBase  < (u)) && ((u) <= Hangul_TFinal))
+#define Hangul_IsJ(u)  ((Hangul_JBase <= (u)) && ((u) <= Hangul_JFinal))
 
 #define Hangul_BName "HANGUL SYLLABLE "
 #define Hangul_BNameLen 16
