@@ -15,7 +15,7 @@ our @EXPORT = qw(
   getHangulName
   parseHangulName
 );
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 our @JamoL = ( # Initial (HANGUL CHOSEONG)
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
@@ -54,7 +54,7 @@ our(%CodeL, %CodeV, %CodeT);
 
 sub getHangulName {
     my $code = shift;
-    return unless SBase <= $code && $code <= SFinal;
+    return undef unless SBase <= $code && $code <= SFinal;
     my $SIndex = $code - SBase;
     my $LIndex = int( $SIndex / NCount);
     my $VIndex = int(($SIndex % NCount) / TCount);
@@ -64,9 +64,9 @@ sub getHangulName {
 
 sub parseHangulName {
     my $arg = shift;
-    return unless $arg =~ s/$BlockName//o;
-    return unless $arg =~ /^([^AEIOUWY]*)([AEIOUWY]+)([^AEIOUWY]*)$/;
-    return unless  exists $CodeL{$1}
+    return undef unless $arg =~ s/$BlockName//o;
+    return undef unless $arg =~ /^([^AEIOUWY]*)([AEIOUWY]+)([^AEIOUWY]*)$/;
+    return undef unless  exists $CodeL{$1}
 		&& exists $CodeV{$2}
 		&& exists $CodeT{$3};
     SBase + $CodeL{$1} * NCount + $CodeV{$2} * TCount + $CodeT{$3};
@@ -172,9 +172,9 @@ Any Hangul syllable is a composition of
 
   ii) CHOSEONG + JUNGSEONG + JONGSEONG (L + V + T).
 
-=head2 Composition and Decomposition
+Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
 
-Hangul Syllables are canonically composable to Hangul Jamo.
+=head2 Composition and Decomposition
 
 =over 4
 
@@ -186,7 +186,8 @@ Accepts unicode codepoint integer.
 
 If the specified codepoint is of a Hangul syllable,
 returns a list of codepoints (in a list context)
-or a UTF-8 string (in a scalar context).
+or a UTF-8 string (in a scalar context)
+of its decomposition.
 
    decomposeHangul(0xAC00) # U+AC00 is HANGUL SYLLABLE GA.
       returns "\x{1100}\x{1161}" or (0x1100, 0x1161);
@@ -218,8 +219,6 @@ are unaffected.
 =back
 
 =head2 Hangul Syllable Name
-
-Names of Hangul Syllables have a format "HANGUL SYLLABLE XXX".
 
 =over 4
 
@@ -268,9 +267,12 @@ SADAHIRO Tomoyuki
 
 =head1 SEE ALSO
 
-L<perl>.
+=over 4
 
-Annex 10: Hangul, in Unicode Normalization Forms (UTR #15).
-      http://www.unicode.org/unicode/reports/tr15
+=item http://www.unicode.org/unicode/reports/tr15
+
+Annex 10: Hangul, in Unicode Normalization Forms (UAX #15).
+
+=back
 
 =cut
