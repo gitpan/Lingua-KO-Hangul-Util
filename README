@@ -1,4 +1,4 @@
-Lingua/KO/Hangul/Util version 0.09
+Lingua/KO/Hangul/Util version 0.10
 ==================================
 
 SYNOPSIS
@@ -59,3 +59,4 @@ SADAHIRO Tomoyuki
 
   This program is free software; you can redistribute it and/or 
   modify it under the same terms as Perl itself.
+

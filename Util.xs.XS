@@ -24,8 +24,8 @@ composeHangul(src)
   PREINIT:
     SV * dst;
     U8 *s, *p, *e, *d;
-    UV lastuv, nextuv, sindex, lindex, vindex, tindex;
-    STRLEN srclen, dstlen, dstcur, curlen, retlen, ulen;
+    UV lastuv, nextuv, lindex, vindex, tindex;
+    STRLEN srclen, dstlen, dstcur, curlen, retlen;
     int notwantarray;
   PPCODE:
     s = (U8*)SvPV(src, srclen);
@@ -43,7 +43,7 @@ composeHangul(src)
 	    if (! srclen)
 		XSRETURN_EMPTY;
 	    else
-		EXTEND(SP, sv_len_utf8(src));
+		EXTEND(SP, (int)sv_len_utf8(src));
 	} /* wantarray */
 
 	for (p = s; p < e; ) {
@@ -95,7 +95,7 @@ composeHangul(src)
 	else {
 	    if (!srclen)
 		XSRETURN_EMPTY;
-	    EXTEND(SP, srclen);
+	    EXTEND(SP, (int)srclen);
 	    for (p = s; p < e; p++)
 		XPUSHs(sv_2mortal(newSVuv((UV)*p)));
 	}

@@ -19,7 +19,7 @@ require AutoLoader;
     parseHangulName
     getHangulComposite
 );
-$VERSION = '0.09';
+$VERSION = '0.10';
 
 bootstrap Lingua::KO::Hangul::Util $VERSION;
 
