@@ -45,7 +45,7 @@ ok($NG, 0);
 
 ok(strfy(composeHangul("\x00")),    "0000");
 ok(strfy(composeHangul("\x20")),    "0020");
-ok(strfy(composeHangul("\x{A1}\x{FF}\x00\x40")),    "00A1:00FF:0000:0040");
+ok(strfy(composeHangul("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")), "AC00:11A7:AC01");
 ok(strfy(composeHangul("\x40\x{1FF}")), "0040:01FF");
 ok(strfy(composeHangul("\x{3042}\x{3044}")), "3042:3044");
 ok(strfy(composeHangul("\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")),
@@ -55,8 +55,8 @@ ok(strhex(scalar composeHangul("")), "");
 ok(strhex(scalar composeHangul("\x00")), "0000");
 ok(strhex(scalar composeHangul("\x20")), "0020");
 ok(strhex(scalar composeHangul("\x40\x{1FF}")), "0040:01FF");
-ok(strhex(scalar composeHangul("\x{A1}\x{FF}\x00\x40")),
-  "00A1:00FF:0000:0040");
+ok(strhex(scalar composeHangul("\x{AC00}\x{11A7}\x{AC00}\x{11A8}")),
+   "AC00:11A7:AC01");
 
 ok(strhex(scalar composeHangul(
     "\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")

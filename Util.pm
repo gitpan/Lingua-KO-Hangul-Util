@@ -16,7 +16,7 @@ our @EXPORT = qw(
     parseHangulName
     getHangulComposite
 );
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 our @JamoL = ( # Initial (HANGUL CHOSEONG)
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",

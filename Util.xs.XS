@@ -28,7 +28,7 @@ composeHangul(src)
     STRLEN srclen, dstlen, dstcur, curlen, retlen, ulen;
     int notwantarray;
   PPCODE:
-    s = SvPV(src, srclen);
+    s = (U8*)SvPV(src, srclen);
     e = s + srclen;
     notwantarray = (GIMME_V != G_ARRAY);
 
@@ -70,7 +70,7 @@ composeHangul(src)
 
      /* 3. just append lastuv */
 	    if(notwantarray) d = uvuni_to_utf8(d, lastuv);
-	    else XPUSHs(sv_2mortal(newSViv(lastuv)));
+	    else XPUSHs(sv_2mortal(newSVuv(lastuv)));
 	} /* for */
 
 	if(notwantarray){
@@ -89,7 +89,7 @@ composeHangul(src)
 	else {
 	    if(!srclen) XSRETURN_EMPTY;
 	    EXTEND(SP, srclen);
-	    for(p = s; p < e; p++) XPUSHs(sv_2mortal(newSViv(*p)));
+	    for(p = s; p < e; p++) XPUSHs(sv_2mortal(newSVuv(*p)));
 	}
     } /* composeHangul */
 
@@ -122,42 +122,16 @@ decomposeHangul(code)
 	t = uvuni_to_utf8(t, (vindex + Hangul_VBase));
 	if (tindex) t = uvuni_to_utf8(t, (tindex + Hangul_TBase));
 	*t = '\0';
-	tlen = strlen(temp);
-	decomp = sv_2mortal(newSVpvn(temp, tlen));
+	tlen = strlen((char*)temp);
+	decomp = sv_2mortal(newSVpvn((char*)temp, tlen));
 	SvUTF8_on(decomp);
 	XPUSHs(decomp);
     }
     else {
 	XPUSHs(sv_2mortal(newSVuv(lindex + Hangul_LBase)));
 	XPUSHs(sv_2mortal(newSVuv(vindex + Hangul_VBase)));
-	if(tindex) XPUSHs(sv_2mortal(newSViv(tindex + Hangul_TBase)));
+	if(tindex) XPUSHs(sv_2mortal(newSVuv(tindex + Hangul_TBase)));
     } /* decomposeHangul */
-
-
-
-SV*
-getHangulName(code)
-    UV code
-  PROTOTYPE: $
-  PREINIT:
-    UV sindex, lindex, vindex, tindex;
-    U8 name[Hangul_NameMax + 1];
-    STRLEN nlen;
-  CODE:
-    if(! Hangul_IsS(code)) XSRETURN_UNDEF;
-    sindex = code - Hangul_SBase;
-    lindex =  sindex / Hangul_NCount;
-    vindex = (sindex % Hangul_NCount) / Hangul_TCount;
-    tindex =  sindex % Hangul_TCount;
-    strcpy(name, Hangul_BName);
-    strcat(name, hangul_JamoL[lindex]);
-    strcat(name, hangul_JamoV[vindex]);
-    strcat(name, hangul_JamoT[tindex]);
-    nlen = strlen(name);
-    RETVAL = newSVpvn(name, nlen);
-  OUTPUT:
-    RETVAL
-
 
 
 SV*
@@ -182,18 +156,42 @@ getHangulComposite(uv,uv2)
 
 
 SV*
+getHangulName(code)
+    UV code
+  PROTOTYPE: $
+  PREINIT:
+    UV sindex, lindex, vindex, tindex;
+    char name[Hangul_NameMax + 1];
+    STRLEN nlen;
+  CODE:
+    if(! Hangul_IsS(code)) XSRETURN_UNDEF;
+    sindex = code - Hangul_SBase;
+    lindex =  sindex / Hangul_NCount;
+    vindex = (sindex % Hangul_NCount) / Hangul_TCount;
+    tindex =  sindex % Hangul_TCount;
+    strcpy(name, Hangul_BName);
+    strcat(name, hangul_JamoL[lindex]);
+    strcat(name, hangul_JamoV[vindex]);
+    strcat(name, hangul_JamoT[tindex]);
+    nlen = strlen(name);
+    RETVAL = newSVpvn(name, nlen);
+  OUTPUT:
+    RETVAL
+
+
+SV*
 parseHangulName(sv)
     SV* sv
   PROTOTYPE: $
   PREINIT:
     UV uv;
-    U8 jamoL[Hangul_LLenMax];
-    U8 jamoV[Hangul_VLenMax];
-    U8 jamoT[Hangul_TLenMax];
-    U8 *s, *p, *e;
+    char jamoL[Hangul_LLenMax];
+    char jamoV[Hangul_VLenMax];
+    char jamoT[Hangul_TLenMax];
+    char *s, *p, *e;
     STRLEN slen, llen, vlen, tlen;
   CODE:
-    s = (U8*)SvPV(sv, slen);
+    s = SvPV(sv, slen);
     e = s + slen;
     if( slen <= Hangul_BNameLen
 	|| Hangul_NameMax < slen
@@ -286,18 +284,22 @@ parseHangulName(sv)
 	    else XSRETURN_UNDEF;
 	}
 	else if (jamoV[0] == 'Y') {
-	    if     (jamoV[1] == 'A') uv +=  2 * Hangul_TCount;
-	    else if(jamoV[1] == 'E') uv +=  7 * Hangul_TCount;
-	    else if(jamoV[1] == 'O') uv += 12 * Hangul_TCount;
-	    else if(jamoV[1] == 'U') uv += 17 * Hangul_TCount;
-	    else if(jamoV[1] == 'I') uv += 19 * Hangul_TCount;
-	    else XSRETURN_UNDEF;
+	    switch(jamoV[1]) {
+		case 'A' : uv +=  2 * Hangul_TCount; break;
+		case 'E' : uv +=  7 * Hangul_TCount; break;
+		case 'O' : uv += 12 * Hangul_TCount; break;
+		case 'U' : uv += 17 * Hangul_TCount; break;
+		case 'I' : uv += 19 * Hangul_TCount; break;
+		default  : XSRETURN_UNDEF;
+	    }
 	}
 	else if (jamoV[0] == 'W') {
-	    if     (jamoV[1] == 'A') uv +=  9 * Hangul_TCount;
-	    else if(jamoV[1] == 'E') uv += 15 * Hangul_TCount;
-	    else if(jamoV[1] == 'I') uv += 16 * Hangul_TCount;
-	    else XSRETURN_UNDEF;
+	    switch(jamoV[1]) {
+		case 'A' : uv +=  9 * Hangul_TCount; break;
+		case 'E' : uv += 15 * Hangul_TCount; break;
+		case 'I' : uv += 16 * Hangul_TCount; break;
+		default  : XSRETURN_UNDEF;
+	    }
 	}
 	else XSRETURN_UNDEF;
     }
@@ -347,20 +349,24 @@ parseHangulName(sv)
 	    else XSRETURN_UNDEF;
 	}
 	else if (jamoT[0] == 'N') {
-	    if     (jamoT[1] == 'J') uv +=  5;
-	    else if(jamoT[1] == 'H') uv +=  6;
-	    else if(jamoT[1] == 'G') uv += 21;
-	    else XSRETURN_UNDEF;
+	    switch(jamoT[1]) {
+		case 'J' : uv +=  5; break;
+		case 'H' : uv +=  6; break;
+		case 'G' : uv += 21; break;
+		default  : XSRETURN_UNDEF;
+	    }
 	}
 	else if (jamoT[0] == 'L') {
-	    if     (jamoT[1] == 'G') uv +=  9;
-	    else if(jamoT[1] == 'M') uv += 10;
-	    else if(jamoT[1] == 'B') uv += 11;
-	    else if(jamoT[1] == 'S') uv += 12;
-	    else if(jamoT[1] == 'T') uv += 13;
-	    else if(jamoT[1] == 'P') uv += 14;
-	    else if(jamoT[1] == 'H') uv += 15;
-	    else XSRETURN_UNDEF;
+	    switch(jamoT[1]) {
+		case 'G' : uv +=  9; break;
+		case 'M' : uv += 10; break;
+		case 'B' : uv += 11; break;
+		case 'S' : uv += 12; break;
+		case 'T' : uv += 13; break;
+		case 'P' : uv += 14; break;
+		case 'H' : uv += 15; break;
+		default  : XSRETURN_UNDEF;
+	    }
 	}
 	else if (jamoT[0] == 'B') {
 	    if     (jamoT[1] == 'S') uv += 18;
@@ -373,6 +379,6 @@ parseHangulName(sv)
 	else XSRETURN_UNDEF;
     } /* jamoT */
 
-    RETVAL = newSViv(uv);
+    RETVAL = newSVuv(uv);
   OUTPUT:
     RETVAL

@@ -3,7 +3,7 @@
  *
  *   This file is for the Perl module Lingua::KO::Hangul::Util.
  *
- * last modified  Thu Nov 01 22:20:03 2001
+ * last modified  Sun Nov 11 11:31:25 2001
  *
 
 AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.orgE
@@ -60,17 +60,17 @@ AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.orgE
   (c) == 'M' || (c) == 'B' || (c) == 'S' || (c) == 'J' || (c) == 'C' || \
   (c) == 'K' || (c) == 'T' || (c) == 'P' || (c) == 'H' )
 
-U8* hangul_JamoL[] = { /* Initial (HANGUL CHOSEONG) */
+char* hangul_JamoL[] = { /* Initial (HANGUL CHOSEONG) */
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
     "S", "SS", "", "J", "JJ", "C", "K", "T", "P", "H"
   };
 
-U8* hangul_JamoV[] = { /* Medial (HANGUL JUNGSEONG) */
+char* hangul_JamoV[] = { /* Medial (HANGUL JUNGSEONG) */
     "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O",
     "WA", "WAE", "OE", "YO", "U", "WEO", "WE", "WI", "YU", "EU", "YI", "I"
   };
 
-U8* hangul_JamoT[] = { /* Final (HANGUL JONGSEONG) */
+char* hangul_JamoT[] = { /* Final (HANGUL JONGSEONG) */
     "", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM",
     "LB", "LS", "LT", "LP", "LH", "M", "B", "BS",
     "S", "SS", "NG", "J", "C", "K", "T", "P", "H"
