@@ -35,9 +35,9 @@ ok(scalar @ary, 0);
 ##
 $NG = 0;
 foreach $aryref (
-   [ "", 0 ], ["\x00", 1 ], [ "\x20", 1 ], [ "ABC", 3 ], 
+   [ "", 0 ], ["\x00", 1 ], [ "\x20", 1 ], [ "ABC", 3 ],
    [ "\x{3042}\x{1FF}", 2 ], [ "Perl", 4 ],
-){ 
+) {
   my @ary = composeHangul($aryref->[0]);
   $NG++ unless @ary == $aryref->[1];
 }
@@ -161,13 +161,13 @@ BEGIN {
     $^H{charnames} = sub {
 	my $name = shift;
 	my $ord  = parseHangulName($name);
-	return $ord ? pack('U', $ord) : charnames::charnames($name);
+	return $ord ? pack('U', $ord) : "\x{FFFD}";
     };
 }
 
 use charnames ();
 
-ok( strhex("\N{HIRAGANA LETTER GA} A \N{HANGUL SYLLABLE A}\N{HANGUL SYLLABLE GA} \N{LATIN CAPITAL LETTER A}"),
-  '304C:0020:0041:0020:C544:AC00:0020:0041',
+ok( strhex("A \N{HANGUL SYLLABLE A}\N{HANGUL SYLLABLE GA} "),
+  '0041:0020:C544:AC00:0020',
 );
 

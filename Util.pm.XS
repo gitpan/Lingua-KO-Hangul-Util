@@ -19,7 +19,7 @@ require AutoLoader;
     parseHangulName
     getHangulComposite
 );
-$VERSION = '0.10';
+$VERSION = '0.11';
 
 bootstrap Lingua::KO::Hangul::Util $VERSION;
 
@@ -28,7 +28,7 @@ __END__
 
 =head1 NAME
 
-Lingua::KO::Hangul::Util - utility functions for Hangul Syllables
+Lingua::KO::Hangul::Util - utility functions for Hangul Syllables in Unicode
 
 =head1 SYNOPSIS
 
@@ -131,7 +131,7 @@ returns its name; otherwise returns undef.
 =item C<$codepoint = parseHangulName($name)>
 
 If the specified name is of a Hangul Syllable,
-returns its code point; otherwise returns undef. 
+returns its code point; otherwise returns undef.
 
    parseHangulName("HANGUL SYLLABLE GEUL") returns 0xAE00;
 
@@ -154,15 +154,15 @@ By default,
 
 =head1 AUTHOR
 
-SADAHIRO Tomoyuki 
+SADAHIRO Tomoyuki
 
   bqw10602@nifty.com
   http://homepage1.nifty.com/nomenclator/perl/
 
   Copyright(C) 2001-2002, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
-  This program is free software; you can redistribute it and/or 
-  modify it under the same terms as Perl itself.
+  This module is free software; you can redistribute it
+  and/or modify it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 

@@ -1,5 +1,8 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.11  Sat May 11 11:59:36 2002
+	- modify a test for a custom translator on charnames.
+
 0.10  Sat Apr 27 10:47:21 2002
 	- removes unreferenced local variables and signed/unsigned mismatches.
 
