@@ -1,135 +1,26 @@
 package Lingua::KO::Hangul::Util;
 
-use 5.006;
+require 5.006;
+
 use strict;
 use warnings;
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
-require Exporter;
+require DynaLoader;
+require AutoLoader;
 
-our @ISA = qw(Exporter);
-our %EXPORT_TAGS = ();
-our @EXPORT_OK = ();
-our @EXPORT = qw(
+@ISA = qw(Exporter DynaLoader);
+
+@EXPORT_OK = ();
+@EXPORT = qw(
   decomposeHangul
   composeHangul
   getHangulName
   parseHangulName
 );
-our $VERSION = '0.04';
+$VERSION = '0.04';
 
-our @JamoL = ( # Initial (HANGUL CHOSEONG)
-    "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
-    "S", "SS", "", "J", "JJ", "C", "K", "T", "P", "H",
-  );
-
-our @JamoV = ( # Medial  (HANGUL JUNGSEONG)
-    "A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O",
-    "WA", "WAE", "OE", "YO", "U", "WEO", "WE", "WI",
-    "YU", "EU", "YI", "I",
-  );
-
-our @JamoT = ( # Final    (HANGUL JONGSEONG)
-    "", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM",
-    "LB", "LS", "LT", "LP", "LH", "M", "B", "BS",
-    "S", "SS", "NG", "J", "C", "K", "T", "P", "H",
-  );
-
-our $BlockName = "HANGUL SYLLABLE ";
-
-use constant SBase  => 0xAC00;
-use constant LBase  => 0x1100;
-use constant VBase  => 0x1161;
-use constant TBase  => 0x11A7;
-use constant LCount => 19;     # scalar @JamoL
-use constant VCount => 21;     # scalar @JamoV
-use constant TCount => 28;     # scalar @JamoT
-use constant NCount => 588;    # VCount * TCount
-use constant SCount => 11172;  # LCount * NCount
-use constant SFinal => 0xD7A3; # SBase -1 + SCount
-
-our(%CodeL, %CodeV, %CodeT);
-@CodeL{@JamoL} = 0 .. LCount-1;
-@CodeV{@JamoV} = 0 .. VCount-1;
-@CodeT{@JamoT} = 0 .. TCount-1;
-
-sub getHangulName {
-    my $code = shift;
-    return undef unless SBase <= $code && $code <= SFinal;
-    my $SIndex = $code - SBase;
-    my $LIndex = int( $SIndex / NCount);
-    my $VIndex = int(($SIndex % NCount) / TCount);
-    my $TIndex =      $SIndex % TCount;
-    "$BlockName$JamoL[$LIndex]$JamoV[$VIndex]$JamoT[$TIndex]";
-}
-
-sub parseHangulName {
-    my $arg = shift;
-    return undef unless $arg =~ s/$BlockName//o;
-    return undef unless $arg =~ /^([^AEIOUWY]*)([AEIOUWY]+)([^AEIOUWY]*)$/;
-    return undef unless  exists $CodeL{$1}
-		&& exists $CodeV{$2}
-		&& exists $CodeT{$3};
-    SBase + $CodeL{$1} * NCount + $CodeV{$2} * TCount + $CodeT{$3};
-}
-
-sub decomposeHangul {
-    my $code = shift;
-    return unless SBase <= $code && $code <= SFinal;
-    my $SIndex = $code - SBase;
-    my $LIndex = int( $SIndex / NCount);
-    my $VIndex = int(($SIndex % NCount) / TCount);
-    my $TIndex =      $SIndex % TCount;
-    my @ret = (
-       LBase + $LIndex,
-       VBase + $VIndex,
-      $TIndex ? (TBase + $TIndex) : (),
-    );
-    wantarray ? @ret : pack('U*', @ret);
-}
-
-#
-# To Do:
-#  s/(\p{JamoL}\p{JamoV})/toHangLV($1)/ge;
-#  s/(\p{HangLV}\p{JamoT})/toHangLVT($1)/ge;
-#
-sub composeHangul {
-    my $str = shift;
-    if(! length $str) { return wantarray ? () : $str }
-    my(@ret);
-
-    foreach my $ch (unpack('U*', $str)) # Makes list! The string be short!
-    {
-      push(@ret, $ch) and next unless @ret;
-
-      # 1. check to see if $ret[-1] is L and $ch is V.
-      my $LIndex = $ret[-1] - LBase;
-      if(0 <= $LIndex && $LIndex < LCount)
-      {
-        my $VIndex = $ch - VBase;
-        if(0 <= $VIndex && $VIndex < VCount)
-        {
-          $ret[-1] = SBase + ($LIndex * VCount + $VIndex) * TCount;
-          next; # discard $ch
-        }
-      }
-
-      # 2. check to see if $ret[-1] is LV and $ch is T.
-      my $SIndex = $ret[-1] - SBase;
-      if(0 <= $SIndex && $SIndex < SCount && $SIndex % TCount == 0)
-      {
-        my $TIndex = $ch - TBase;
-        if(0 <= $TIndex && $TIndex < TCount)
-        {
-          $ret[-1] += $TIndex;
-          next; # discard $ch
-        }
-      }
-
-      # 3. just append $ch
-      push(@ret, $ch);
-    }
-    wantarray ? @ret : pack('U*', @ret);
-}
+bootstrap Lingua::KO::Hangul::Util $VERSION;
 
 1;
 __END__

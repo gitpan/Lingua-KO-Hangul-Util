@@ -1,5 +1,13 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.04  Wed Oct 28 16:07:46 2001
+	- an XS version.
+	(but the Non-XS version is also supported.)
+
+0.03  Wed Oct 10 00:50:20 2001 (not released)
+	- In list context, composeHangul('') should return
+	 empty list, rather than empty string.
+
 0.02  Sat Aug 11 00:16:02 2001
 	- fix SEE ALSO (the Unicode Normalization Forms is UAX #15)
 	- getHangulName and parseHangulName return

@@ -1,10 +1,10 @@
 Changes
 Makefile.PL
 MANIFEST
-MANIFEST.XS
-Util.pm
-Util.pm.XS
-Util.xs.XS
+MANIFEST.NXS
 README
 hangul.h
+Util.pm
+Util.xs
+Util.pm.NXS
 t/test.t

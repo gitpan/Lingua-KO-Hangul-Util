@@ -1,4 +1,4 @@
-Lingua/KO/Hangul/Util version 0.02
+Lingua/KO/Hangul/Util version 0.04
 ==================================
 
 SYNOPSIS
@@ -22,6 +22,14 @@ INSTALLATION
 To install this module type the following:
 
    perl Makefile.PL
+   make
+   make test
+   make install
+
+If you have a C compiler and want to use the XS version,
+type the following:
+
+   perl Makefile.PL xs
    make
    make test
    make install
