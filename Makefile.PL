@@ -35,6 +35,6 @@ WriteMakefile(
     'VERSION_FROM' => 'Util.pm', # finds $VERSION
     'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM => 'Util.pm', # retrieve abstract from module
+      (ABSTRACT_FROM => 'Util.pod', # retrieve abstract from module
        AUTHOR     => 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>') : ()),
 );

@@ -6,7 +6,7 @@
 use Test;
 use strict;
 use warnings;
-BEGIN { plan tests => 66 };
+BEGIN { plan tests => 80 };
 use Lingua::KO::Hangul::Util;
 ok(1); # If we made it this far, we're ok.
 
@@ -31,7 +31,7 @@ ok(scalar @ary, 0);
 
 
 ##
-## composeHangul: 13 tests
+## composeHangul: 14 tests
 ##
 $NG = 0;
 foreach $aryref (
@@ -54,12 +54,17 @@ ok(strfy(composeHangul("\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")),
 ok(strhex(scalar composeHangul("")), "");
 ok(strhex(scalar composeHangul("\x00")), "0000");
 ok(strhex(scalar composeHangul("\x20")), "0020");
-ok(strhex(scalar composeHangul("\x{A1}\x{FF}\x00\x40")),
-     "00A1:00FF:0000:0040");
 ok(strhex(scalar composeHangul("\x40\x{1FF}")), "0040:01FF");
+ok(strhex(scalar composeHangul("\x{A1}\x{FF}\x00\x40")),
+  "00A1:00FF:0000:0040");
+
 ok(strhex(scalar composeHangul(
-  "\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")
+    "\x40\x{1100}\x{1161}\x{1100}\x{1173}\x{11AF}\x60")
 ), "0040:AC00:AE00:0060");
+
+ok(strhex(scalar composeHangul(
+  "\x{AC00}\x{11A7}\x{1100}\x{0300}\x{1161}")
+), "AC00:11A7:1100:0300:1161");
 
 ##
 ## getHangulName: 11 tests
@@ -126,4 +131,22 @@ foreach my $i (0xAC00..0xD7A3){
   $NG ++ if $i != (composeHangul scalar decomposeHangul($i))[0];
 }
 ok($NG, 0);
+
+
+##
+## getHangulComposite: 13 tests
+##
+ok(getHangulComposite( 0,  0), undef);
+ok(getHangulComposite( 0, 41), undef);
+ok(getHangulComposite(41,  0), undef);
+ok(getHangulComposite(41, 41), undef);
+ok(getHangulComposite(0x1100, 0x1161), 0xAC00);
+ok(getHangulComposite(0x1100, 0x1173), 0xADF8);
+ok(getHangulComposite(0xAC00, 0x11A7), undef);
+ok(getHangulComposite(0xAC00, 0x11A8), 0xAC01);
+ok(getHangulComposite(0xADF8, 0x11AF), 0xAE00);
+ok(getHangulComposite(12, 0x0300), undef);
+ok(getHangulComposite(0x0055, 0xFF00), undef);
+ok(getHangulComposite(0x1100, 0x11AF), undef);
+ok(getHangulComposite(0x1173, 0x11AF), undef);
 

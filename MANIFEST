@@ -2,6 +2,7 @@ Changes
 Makefile.PL
 MANIFEST
 MANIFEST.XS
+Util.pod
 Util.pm
 Util.pm.XS
 Util.xs.XS

@@ -1,5 +1,8 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.06  Thu Nov 01 22:22:42 2001
+	- add getHangulComposite()
+
 0.05  Wed Oct 31 21:48:06 2001
 	- modify hangul.h and Util.xs.
 

@@ -3,7 +3,7 @@
  *
  *   This file is for the Perl module Lingua::KO::Hangul::Util.
  *
- * last modified  Wed Oct 31 21:44:15 2001
+ * last modified  Thu Nov 01 22:20:03 2001
  *
 
 AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.orgE
@@ -42,7 +42,7 @@ AUTHOR SADAHIRO Tomoyuki, SADAHIRO@cpan.orgE
 #define Hangul_IsLV(u) (Hangul_IsS(u) && Hangul_IsN(u))
 #define Hangul_IsL(u)  ((Hangul_LBase <= (u)) && ((u) <= Hangul_LFinal))
 #define Hangul_IsV(u)  ((Hangul_VBase <= (u)) && ((u) <= Hangul_VFinal))
-#define Hangul_IsT(u)  ((Hangul_TBase <= (u)) && ((u) <= Hangul_TFinal))
+#define Hangul_IsT(u)  ((Hangul_TBase  < (u)) && ((u) <= Hangul_TFinal))
 
 #define Hangul_BName "HANGUL SYLLABLE "
 #define Hangul_BNameLen 16

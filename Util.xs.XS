@@ -128,8 +128,8 @@ decomposeHangul(code)
 	XPUSHs(decomp);
     }
     else {
-	XPUSHs(sv_2mortal(newSViv(lindex + Hangul_LBase)));
-	XPUSHs(sv_2mortal(newSViv(vindex + Hangul_VBase)));
+	XPUSHs(sv_2mortal(newSVuv(lindex + Hangul_LBase)));
+	XPUSHs(sv_2mortal(newSVuv(vindex + Hangul_VBase)));
 	if(tindex) XPUSHs(sv_2mortal(newSViv(tindex + Hangul_TBase)));
     } /* decomposeHangul */
 
@@ -155,6 +155,28 @@ getHangulName(code)
     strcat(name, hangul_JamoT[tindex]);
     nlen = strlen(name);
     RETVAL = newSVpvn(name, nlen);
+  OUTPUT:
+    RETVAL
+
+
+
+SV*
+getHangulComposite(uv,uv2)
+    UV uv
+    UV uv2
+  PROTOTYPE: $$
+  CODE:
+    if(Hangul_IsL(uv) && Hangul_IsV(uv2)) {
+	UV lindex = uv  - Hangul_LBase;
+	UV vindex = uv2 - Hangul_VBase;
+	RETVAL = newSVuv(
+	    Hangul_SBase + (lindex * Hangul_VCount + vindex) * Hangul_TCount
+	);
+    }
+    else if(Hangul_IsLV(uv) && Hangul_IsT(uv2)) {
+	RETVAL = newSVuv(uv + uv2 - Hangul_TBase);
+    }
+    else XSRETURN_UNDEF;
   OUTPUT:
     RETVAL
 
