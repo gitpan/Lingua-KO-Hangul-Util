@@ -10,12 +10,12 @@ our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ();
 our @EXPORT_OK = ();
 our @EXPORT = qw(
-  decomposeHangul
-  composeHangul
-  getHangulName
-  parseHangulName
+    decomposeHangul
+    composeHangul
+    getHangulName
+    parseHangulName
 );
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 our @JamoL = ( # Initial (HANGUL CHOSEONG)
     "G", "GG", "N", "D", "DD", "R", "M", "B", "BB",
@@ -59,17 +59,16 @@ sub getHangulName {
     my $LIndex = int( $SIndex / NCount);
     my $VIndex = int(($SIndex % NCount) / TCount);
     my $TIndex =      $SIndex % TCount;
-    "$BlockName$JamoL[$LIndex]$JamoV[$VIndex]$JamoT[$TIndex]";
+    return "$BlockName$JamoL[$LIndex]$JamoV[$VIndex]$JamoT[$TIndex]";
 }
 
 sub parseHangulName {
     my $arg = shift;
     return undef unless $arg =~ s/$BlockName//o;
     return undef unless $arg =~ /^([^AEIOUWY]*)([AEIOUWY]+)([^AEIOUWY]*)$/;
-    return undef unless  exists $CodeL{$1}
-		&& exists $CodeV{$2}
-		&& exists $CodeT{$3};
-    SBase + $CodeL{$1} * NCount + $CodeV{$2} * TCount + $CodeT{$3};
+    return undef unless exists $CodeL{$1}
+		 && exists $CodeV{$2} && exists $CodeT{$3};
+    return SBase + $CodeL{$1} * NCount + $CodeV{$2} * TCount + $CodeT{$3};
 }
 
 sub decomposeHangul {

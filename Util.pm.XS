@@ -13,12 +13,12 @@ require AutoLoader;
 
 @EXPORT_OK = ();
 @EXPORT = qw(
-  decomposeHangul
-  composeHangul
-  getHangulName
-  parseHangulName
+    decomposeHangul
+    composeHangul
+    getHangulName
+    parseHangulName
 );
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 bootstrap Lingua::KO::Hangul::Util $VERSION;
 

@@ -1,6 +1,9 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
-0.04  Wed Oct 28 16:07:46 2001
+0.05  Wed Oct 31 21:48:06 2001
+	- modify hangul.h and Util.xs.
+
+0.04  Sun Oct 28 16:07:46 2001
 	- an XS version.
 	(but the Non-XS version is also supported.)
 
