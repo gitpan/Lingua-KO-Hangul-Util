@@ -117,7 +117,7 @@ composeJamo(arg)
 	fcomposed = FALSE;
 	if (Hangul_IsJ(uv) && (complist = LKHU_Comp[uv & 0xFF])) {
 	    for (i = complist; i->len; i++) {
-		if (memEQ(p, i->trail, i->len)) {
+		if (i->len <= (e - p) && memEQ(p, i->trail, i->len)) {
 		    d = uvuni_to_utf8(d, i->composite);
 		    p += i->len;
 		    fcomposed = TRUE;

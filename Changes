@@ -1,5 +1,9 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.21  Sun Oct 19 20:33:22 2003
+    - fix in composeJamo (XSUB): no longer relies on a string to be
+      terminated with '\0'.
+
 0.20  Mon Sep 08 21:38:02 2003
     - added decomposeJamo(), composeJamo(), decomposeSyllable(),
       composeSyllable(), and decomposeFull().

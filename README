@@ -43,7 +43,11 @@ to build XSUB, type the following:
 
 DEPENDENCIES
 
-  Perl 5.6.1 or later
+Perl 5.6.1 or later
+
+using following standard modules in code or test:
+  Carp, DynaLoader, Exporter, File::Copy, Test,
+  charnames, constant, strict, warnings.
 
 COPYRIGHT AND LICENCE
 

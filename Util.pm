@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 
 require Exporter;
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 our $PACKAGE = __PACKAGE__;
 our @ISA = qw(Exporter);
 
@@ -617,21 +617,23 @@ By default,
 
 =over 4
 
-=item http://www.unicode.org/unicode/reports/tr15
+=item Unicode Normalization Forms (UAX #15)
 
-Annex 10: Hangul, in Unicode Normalization Forms (UAX #15).
+L<http://www.unicode.org/reports/tr15>
 
-=item http://www.unicode.org/Public/2.1-Update3/UnicodeData-2.1.8.txt
+=item Jamo Decomposition in Old Unicode
 
-Jamo Decomposition in Old Unicode
+L<http://www.unicode.org/Public/2.1-Update3/UnicodeData-2.1.8.txt>
 
-=item http://std.dkuug.dk/JTC1/SC22/WG20/docs/N954.PDF
+=item ISO/IEC JTC1/SC22/WG20 N954
 
-ISO/IEC JTC1/SC22/WG20 N954: Paper by K. KIM:
+Paper by K. KIM:
 New canonical decomposition and composition processes for Hangeul
 
-(summary: http://std.dkuug.dk/JTC1/SC22/WG20/docs/N953.PDF )
-(cf. http://std.dkuug.dk/JTC1/SC22/WG20/docs/documents.html )
+L<http://std.dkuug.dk/JTC1/SC22/WG20/docs/N954.PDF>
+
+(summary: L<http://std.dkuug.dk/JTC1/SC22/WG20/docs/N953.PDF>)
+(cf. L<http://std.dkuug.dk/JTC1/SC22/WG20/docs/documents.html>)
 
 =back
 

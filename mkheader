@@ -213,12 +213,15 @@ for (my $c = 0x1100; $c <= 0x11FF; $c++) {
 print "};\n\n";
 
 our $StrNam = "LKHU_CompStruct";
+our $TypStr = 'U8*';
+our $TypLen = 'U8';
+our $TypChr = 'UV';
 
 print <<"EOF";
 typedef struct {
-    U8* trail;
-    STRLEN len;
-    UV composite;
+    $TypStr trail;
+    $TypLen len;
+    $TypChr composite;
 } $StrNam;\n\n
 EOF
 
@@ -257,7 +260,7 @@ for my $c (sort { $a <=> $b } keys %CompStruct) {
     for my $ary (@{ $CompStruct{$c} }) {
 	print "    { $ary->[0], $ary->[1], $ary->[2] },\n";
     }
-    print "{ NULL, (STRLEN)0, (UV)0 },\n";
+    print "{ ($TypStr)NULL, ($TypLen)0, ($TypChr)0 },\n";
     print "};\n\n";
 }
 
