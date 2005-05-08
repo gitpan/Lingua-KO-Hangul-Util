@@ -1,3 +1,14 @@
+#!perl
+#
+# This auxiliary script makes five header files
+# used for building XSUB of Lingua::KO::Hangul::Util
+#
+# Usage:
+#    <do 'mkheader'> in perl, or <perl mkheader> in command line
+#
+# Input: nothing
+# Output: "lkhutmp.h"
+#
 use strict;
 use warnings;
 
@@ -194,6 +205,14 @@ my %Decomp = (
 open FH, ">", "lkhutmp.h" or die $!;
 select FH;
 
+my @Lfiller = charlist(0x115F);
+print "#define LKHU_LF_STRING  (", strquote(@Lfiller), ")\n";
+print "#define LKHU_LF_LENGTH  (", scalar  (@Lfiller), ")\n";
+
+my @Vfiller = charlist(0x1160);
+print "#define LKHU_VF_STRING  (", strquote(@Vfiller), ")\n";
+print "#define LKHU_VF_LENGTH  (", scalar  (@Vfiller), ")\n";
+
 our $DecompCnt = 3;
 our $DecompEnd = 255;
 
@@ -270,3 +289,5 @@ for (my $c = 0x1100; $c <= 0x11FF; $c++) {
 }
 print "};\n\n";
 
+1;
+__END__

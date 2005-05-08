@@ -6,23 +6,26 @@ use warnings;
 use Carp;
 
 require Exporter;
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 our $PACKAGE = __PACKAGE__;
 our @ISA = qw(Exporter);
 
-our @EXPORT_OK = qw(
-    decomposeSyllable
-    composeSyllable
-    decomposeJamo
-    composeJamo
-    decomposeFull
-);
 our @EXPORT = qw(
     decomposeHangul
     composeHangul
     getHangulName
     parseHangulName
     getHangulComposite
+);
+our @EXPORT_OK = qw(
+    decomposeSyllable
+    composeSyllable
+    decomposeJamo
+    composeJamo
+    decomposeFull
+    getSyllableType
+    isStandardForm
+    insertFiller
 );
 our %EXPORT_TAGS = (
     'all' => [ @EXPORT, @EXPORT_OK ],
@@ -68,22 +71,28 @@ use constant JBase  => 0x1100;
 use constant JFinal => 0x11FF;
 use constant JCount =>    256;
 
+use constant JamoLIni   => 0x1100;
+use constant JamoLFin   => 0x1159;
+use constant JamoLFill  => 0x115F;
+use constant JamoVIni   => 0x1160;
+use constant JamoVFin   => 0x11A2;
+use constant JamoTIni   => 0x11A8;
+use constant JamoTFin   => 0x11F9;
+
 my(%CodeL, %CodeV, %CodeT);
 @CodeL{@JamoL} = 0 .. LCount-1;
 @CodeV{@JamoV} = 0 .. VCount-1;
 @CodeT{@JamoT} = 0 .. TCount-1;
 
-#####
-
-sub Hangul_IsJ  ($) { JBase <= $_[0] && $_[0] <= JFinal }
-sub Hangul_IsS  ($) { SBase <= $_[0] && $_[0] <= SFinal }
-sub Hangul_IsL  ($) { LBase <= $_[0] && $_[0] <= LFinal }
-sub Hangul_IsV  ($) { VBase <= $_[0] && $_[0] <= VFinal }
-sub Hangul_IsT  ($) { TBase  < $_[0] && $_[0] <= TFinal }
-		    # TBase <= $_[0] is false!
-sub Hangul_IsLV ($) {
+my $IsJ = sub { JBase <= $_[0] && $_[0] <= JFinal };
+my $IsS = sub { SBase <= $_[0] && $_[0] <= SFinal };
+my $IsL = sub { LBase <= $_[0] && $_[0] <= LFinal };
+my $IsV = sub { VBase <= $_[0] && $_[0] <= VFinal };
+my $IsT = sub { TBase  < $_[0] && $_[0] <= TFinal };
+	      # TBase <= $_[0] is false!
+my $IsLV = sub {
     SBase <= $_[0] && $_[0] <= SFinal && (($_[0] - SBase ) % TCount) == 0;
-}
+};
 
 #####
 
@@ -282,10 +291,10 @@ my %Decomp = (
 );
 
 foreach my $char (sort {$a <=> $b} keys %Decomp) {
-    $char or croak "$PACKAGE : composition to NULL is not allowed";
+    $char or croak("$PACKAGE : composition to NULL is not allowed");
     my @dec = @{ $Decomp{$char} };
-    @dec == 2 || @dec == 3 or croak
-	sprintf "$PACKAGE : weird decomposition [%04X]", $char;
+    @dec == 2 || @dec == 3 or
+	croak(sprintf("$PACKAGE : weird decomposition [%04X]", $char));
     if (@dec == 2) {
 	$Map12{"$dec[0];$dec[1]"} = $char;
     } else {
@@ -295,14 +304,60 @@ foreach my $char (sort {$a <=> $b} keys %Decomp) {
 
 #####
 
+sub getSyllableType($) {
+    my $u = shift;
+    return
+	JamoLIni <= $u && $u <= JamoLFin || $u == JamoLFill ? "L" :
+	JamoVIni <= $u && $u <= JamoVFin	     ? "V" :
+	JamoTIni <= $u && $u <= JamoTFin	     ? "T" :
+	SBase <= $u && $u <= SFinal ?
+	    ($u - SBase) % TCount ? "LVT" : "LV" : "NA";
+}
+
+my %Fillers = (
+    "LT"   => [ 0x1160, 0x115F, 0x1160 ],
+    "LNA"  => [ 0x1160 ],
+    "TV"   => [ 0x115F ],
+    "LVTV" => [ 0x115F ],
+    "NAV"  => [ 0x115F ],
+    "NAT"  => [ 0x115F, 0x1160 ],
+);
+
+sub isStandardForm($) {
+    my $str = shift(@_).pack('U*');
+
+    my $ptype = 'NA';
+    foreach my $ch (unpack('U*', $str)) {
+	my $ctype = getSyllableType($ch);
+	return "" if $Fillers{"$ptype$ctype"};
+	$ptype = $ctype;
+    }
+    return $ptype eq "L" ? "" : 1;
+}
+
+sub insertFiller($) {
+    my $str = shift(@_).pack('U*');
+    my $ptype = 'NA';
+    my(@ret);
+    foreach my $ch (unpack('U*', $str)) {
+	my $ctype = getSyllableType($ch);
+	$Fillers{"$ptype$ctype"} and
+	    push(@ret, @{ $Fillers{"$ptype$ctype"} });
+	push @ret, $ch;
+	$ptype = $ctype;
+    }
+    $ptype eq "L" and push(@ret, @{ $Fillers{"LNA"} });
+    return pack('U*', @ret);
+}
+
 sub getHangulName ($) {
-    my $code = shift;
-    return undef unless Hangul_IsS($code);
-    my $SIndex = $code - SBase;
-    my $LIndex = int( $SIndex / NCount);
-    my $VIndex = int(($SIndex % NCount) / TCount);
-    my $TIndex =      $SIndex % TCount;
-    return "$BlockName$JamoL[$LIndex]$JamoV[$VIndex]$JamoT[$TIndex]";
+    my $u = shift;
+    return undef unless &$IsS($u);
+    my $sindex = $u - SBase;
+    my $lindex = int( $sindex / NCount);
+    my $vindex = int(($sindex % NCount) / TCount);
+    my $tindex =      $sindex % TCount;
+    return "$BlockName$JamoL[$lindex]$JamoV[$vindex]$JamoT[$tindex]";
 }
 
 sub parseHangulName ($) {
@@ -315,21 +370,19 @@ sub parseHangulName ($) {
 }
 
 sub getHangulComposite ($$) {
-    if (Hangul_IsL($_[0]) && Hangul_IsV($_[1])) {
+    if (&$IsL($_[0]) && &$IsV($_[1])) {
 	my $lindex = $_[0] - LBase;
 	my $vindex = $_[1] - VBase;
 	return (SBase + ($lindex * VCount + $vindex) * TCount);
     }
-    if (Hangul_IsLV($_[0]) && Hangul_IsT($_[1])) {
+    if (&$IsLV($_[0]) && &$IsT($_[1])) {
 	return($_[0] + $_[1] - TBase);
     }
     return undef;
 }
 
 sub decomposeJamo ($) {
-    my $str = pack('U*').shift;
-    length $str or return $str;
-
+    my $str = shift(@_).pack('U*');
     my(@ret);
     foreach my $ch (unpack('U*', $str)) {
 	push @ret, $Decomp{$ch} ? @{ $Decomp{$ch} } : ($ch);
@@ -338,9 +391,7 @@ sub decomposeJamo ($) {
 }
 
 sub decomposeSyllable ($) {
-    my $str = pack('U*').shift;
-    length $str or return $str;
-
+    my $str = shift(@_).pack('U*');
     my(@ret);
     foreach my $ch (unpack('U*', $str)) {
 	my @r = decomposeHangul($ch);
@@ -351,27 +402,24 @@ sub decomposeSyllable ($) {
 
 sub decomposeHangul ($) {
     my $code = shift;
-    return unless Hangul_IsS($code);
-    my $SIndex = $code - SBase;
-    my $LIndex = int( $SIndex / NCount);
-    my $VIndex = int(($SIndex % NCount) / TCount);
-    my $TIndex =      $SIndex % TCount;
+    return unless &$IsS($code);
+    my $sindex = $code - SBase;
+    my $lindex = int( $sindex / NCount);
+    my $vindex = int(($sindex % NCount) / TCount);
+    my $tindex =      $sindex % TCount;
     my @ret = (
-       LBase + $LIndex,
-       VBase + $VIndex,
-      $TIndex ? (TBase + $TIndex) : (),
+       LBase + $lindex,
+       VBase + $vindex,
+      $tindex ? (TBase + $tindex) : (),
     );
     wantarray ? @ret : pack('U*', @ret);
 }
 
 sub composeJamo ($) {
-    my $str = pack('U*').shift;
-    length $str or return $str;
-
+    my $str = shift(@_).pack('U*');
     my @tmp = unpack('U*', $str);
-
     for (my $i = 0; $i < @tmp; $i++) {
-	next unless Hangul_IsJ($tmp[$i]);
+	next unless &$IsJ($tmp[$i]);
 
 	if ($tmp[$i + 2] && $Map123{"$tmp[$i];$tmp[$i+1];$tmp[$i+2]"}) {
 	    $tmp[$i] = $Map123{"$tmp[$i];$tmp[$i+1];$tmp[$i+2]"};
@@ -388,17 +436,14 @@ sub composeJamo ($) {
 }
 
 sub composeSyllable ($) {
-    my $str = pack('U*').shift;
-    length $str or return $str;
-
+    my $str = shift(@_).pack('U*');
     my(@ret);
-
     foreach my $ch (unpack('U*', $str)) {
 	push(@ret, $ch) and next unless @ret;
 
       # 1. check to see if $ret[-1] is L and $ch is V.
 
-	if (Hangul_IsL($ret[-1]) && Hangul_IsV($ch)) {
+	if (&$IsL($ret[-1]) && &$IsV($ch)) {
 	    $ret[-1] -= LBase; # LIndex
 	    $ch      -= VBase; # VIndex
 	    $ret[-1]  = SBase + ($ret[-1] * VCount + $ch) * TCount;
@@ -407,7 +452,7 @@ sub composeSyllable ($) {
 
       # 2. check to see if $ret[-1] is LV and $ch is T.
 
-	if (Hangul_IsLV($ret[-1]) && Hangul_IsT($ch)) {
+	if (&$IsLV($ret[-1]) && &$IsT($ch)) {
 	    $ret[-1] += $ch - TBase; # + TIndex
 	    next; # discard $ch
 	}
@@ -415,7 +460,6 @@ sub composeSyllable ($) {
       # 3. just append $ch
 	push(@ret, $ch);
     }
-
     return pack('U*', @ret);
 }
 
@@ -448,7 +492,7 @@ Lingua::KO::Hangul::Util - utility functions for Hangul in Unicode
 
 =head1 DESCRIPTION
 
-A Hangul syllable consists of Hangul Jamo (Hangul letters).
+A Hangul syllable consists of Hangul jamo (Hangul letters).
 
 Hangul letters are classified into three classes:
 
@@ -458,33 +502,30 @@ Hangul letters are classified into three classes:
 
 Any Hangul syllable is a composition of (i) L + V, or (ii) L + V + T.
 
-Names of Hangul Syllables have a format of C<"HANGUL SYLLABLE %s">.
-
 =head2 Composition and Decomposition
 
 =over 4
 
 =item C<$resultant_string = decomposeSyllable($string)>
 
-Decomposes a precomposed syllable (C<LV> or C<LVT>)
+It decomposes a precomposed syllable (C<LV> or C<LVT>)
 to a sequence of conjoining jamo (C<L + V> or C<L + V + T>)
 and returns the result as a string.
 
-Any characters other than Hangul Syllables are not affected.
+Any characters other than Hangul syllables are not affected.
 
 =item C<$resultant_string = composeSyllable($string)>
 
-Composes a sequence of conjoining jamo (C<L + V> or C<L + V + T>)
+It composes a sequence of conjoining jamo (C<L + V> or C<L + V + T>)
 to a precomposed syllable (C<LV> or C<LVT>) if possible,
 and returns the result as a string.
 A syllable C<LV> and final jamo C<T> are also composed.
 
-Any characters other than Hangul Jamo and Hangul Syllables
-are not affected.
+Any characters other than Hangul jamo and syllables are not affected.
 
 =item C<$resultant_string = decomposeJamo($string)>
 
-Decomposes a complex jamo to a sequence of simple jamo if possible,
+It decomposes a complex jamo to a sequence of simple jamo if possible,
 and returns the result as a string.
 Any characters other than complex jamo are not affected.
 
@@ -496,10 +537,10 @@ Any characters other than complex jamo are not affected.
 
 =item C<$resultant_string = composeJamo($string)>
 
-Composes a sequence of simple jamo (C<L1 + L2>, C<V1 + V2 + V3>, etc.)
+It composes a sequence of simple jamo (C<L1 + L2>, C<V1 + V2 + V3>, etc.)
 to a complex jamo if possible,
 and returns the result as a string.
-Any characters other than simple Jamo are not affected.
+Any characters other than simple jamo are not affected.
 
   e.g.
       CHOSEONG SIOS + PIEUP to CHOSEONG SIOS-PIEUP
@@ -509,7 +550,7 @@ Any characters other than simple Jamo are not affected.
 
 =item C<$resultant_string = decomposeFull($string)>
 
-Decomposes a syllable/complex jamo to a sequence of simple jamo.
+It decomposes a syllable/complex jamo to a sequence of simple jamo.
 Equivalent to C<decomposeJamo(decomposeSyllable($string))>.
 
 =back
@@ -522,8 +563,8 @@ Equivalent to C<decomposeJamo(decomposeSyllable($string))>.
 
 =item C<@codepoints = decomposeHangul($code_point)>
 
-If the specified code point is of a Hangul Syllable,
-returns a list of code points (in a list context)
+If the specified code point is of a Hangul syllable,
+it returns a list of code points (in a list context)
 or a string (in a scalar context) of its decomposition.
 
    decomposeHangul(0xAC00) # U+AC00 is HANGUL SYLLABLE GA.
@@ -534,27 +575,26 @@ or a string (in a scalar context) of its decomposition.
 
 Otherwise, returns false (empty string or empty list).
 
-   decomposeHangul(0x0041) # outside Hangul Syllables
+   decomposeHangul(0x0041) # outside Hangul syllables
       returns empty string or empty list.
 
 =item C<$string_composed = composeHangul($src_string)>
 
 =item C<@code_points_composed = composeHangul($src_string)>
 
-Any sequence of an initial Jamo C<L> and a medial Jamo C<V>
+Any sequence of an initial jamo C<L> and a medial jamo C<V>
 is composed to a syllable C<LV>;
-then any sequence of a syllable C<LV> and a final Jamo C<T>
+then any sequence of a syllable C<LV> and a final jamo C<T>
 is composed to a syllable C<LVT>.
 
-Any characters other than Hangul Jamo and Hangul Syllables
-are not affected.
+Any characters other than Hangul jamo and syllables are not affected.
 
    composeHangul("\x{1100}\x{1173}\x{11AF}.")
    # returns "\x{AE00}." or (0xAE00,0x2E);
 
 =item C<$code_point_composite = getHangulComposite($code_point_here, $code_point_next)>
 
-Return the codepoint of the composite
+It returns the codepoint of the composite
 if both two code points, C<$code_point_here> and C<$code_point_next>,
 are in Hangul, and composable.
 
@@ -564,24 +604,26 @@ Otherwise, returns C<undef>.
 
 =head2 Hangul Syllable Name
 
-The following functions handle only a precomposed Hangul Syllable
+The following functions handle only a precomposed Hangul syllable
 (from C<U+AC00> to C<U+D7A3>), but not a Hangul jamo
 or other Hangul-related character.
+
+Names of Hangul syllables have a format of C<"HANGUL SYLLABLE %s">.
 
 =over 4
 
 =item C<$name = getHangulName($code_point)>
 
-If the specified code point is of a Hangul Syllable,
-returns its name; otherwise it returns undef.
+If the specified code point is of a Hangul syllable,
+it returns its name; otherwise it returns undef.
 
    getHangulName(0xAC00) returns "HANGUL SYLLABLE GA";
    getHangulName(0x0041) returns undef.
 
 =item C<$codepoint = parseHangulName($name)>
 
-If the specified name is of a Hangul Syllable,
-returns its code point; otherwise it returns undef.
+If the specified name is of a Hangul syllable,
+it returns its code point; otherwise it returns undef.
 
    parseHangulName("HANGUL SYLLABLE GEUL") returns 0xAE00;
 
@@ -592,26 +634,70 @@ returns its code point; otherwise it returns undef.
 
 =back
 
-=head2 EXPORT
+=head2 Standard Korean Syllable Block
 
-By default,
+Standard Korean syllable block consists of C<L+ V+ T*>
+(a sequence of one or more L, one or more V, and zero or more T)
+according to conjoining jamo behabior revised in Unicode 3.2 (cf. UAX #28).
+A sequence of C<L> followed by C<T> is not a syllable block without C<V>,
+but consists of two nonstandard syllable blocks: one without C<V>, and another
+without C<L> and C<V>.
 
-  decomposeHangul
-  composeHangul
-  getHangulName
-  parseHangulName
-  getHangulComposite
+=over 4
+
+=item C<$bool = isStandardForm($string)>
+
+It returns boolean whether the string is encoded in the standard form
+without a nonstandard sequence. It returns true only if the string
+contains no nonstandard sequence.
+
+=item C<$resultant_string = insertFiller($string)>
+
+It transforms the string into standard form by inserting fillers
+into each syllables and returns the result as a string.
+Choseong filler (C<Lf>, C<U+115F>) is inserted into a syllable block
+without C<L>. Jungseong filler (C<Vf>, C<U+1160>) is inserted into
+a syllable block without C<V>.
+
+=item C<$type = getSyllableType($code_point)>
+
+It returns the Hangul syllable type (cf. F<HangulSyllableType.txt>)
+for the specified code point as a string:
+C<"L"> for leading jamo, C<"V"> for vowel jamo, C<"T"> for trailing jamo,
+C<"LV"> for LV syllables, C<"LVT"> for LVT syllables, and C<"NA">
+for other code points (as B<N>ot B<A>pplicable).
+
+=back
+
+=head1 EXPORT
+
+By default:
+
+    decomposeHangul
+    composeHangul
+    getHangulName
+    parseHangulName
+    getHangulComposite
+
+On request:
+
+    decomposeSyllable
+    composeSyllable
+    decomposeJamo
+    composeJamo
+    decomposeFull
+    isStandardForm
+    insertFiller
+    getSyllableType
 
 =head1 AUTHOR
 
-  SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
+SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-  http://homepage1.nifty.com/nomenclator/perl/
+Copyright(C) 2001-2005, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
-  Copyright(C) 2001-2003, SADAHIRO Tomoyuki. Japan. All rights reserved.
-
-  This module is free software; you can redistribute it
-  and/or modify it under the same terms as Perl itself.
+This module is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
 
 =head1 SEE ALSO
 
@@ -619,7 +705,15 @@ By default,
 
 =item Unicode Normalization Forms (UAX #15)
 
-L<http://www.unicode.org/reports/tr15>
+L<http://www.unicode.org/reports/tr15/>
+
+=item Conjoining Jamo Behavior (revision) in UAX #28
+
+L<http://www.unicode.org/reports/tr28/#3_11_conjoining_jamo_behavior>
+
+=item Hangul Syllable Type
+
+L<http://www.unicode.org/Public/UNIDATA/HangulSyllableType.txt>
 
 =item Jamo Decomposition in Old Unicode
 
