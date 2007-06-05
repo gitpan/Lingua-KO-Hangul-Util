@@ -256,7 +256,16 @@ foreach my $char (sort {$a <=> $b} keys %Decomp) {
     }
 }
 
-sub charlist { unpack 'C*', pack 'U*', @_ }
+sub charlist {
+    use bytes;
+    my $uni = pack('U*', @_);
+    my $len = length($uni);
+    my @ary;
+    for(my $i = 0; $i < $len; ++$i) {
+	push @ary, ord(substr($uni,$i,1));
+    }
+    return @ary;
+}
 sub strquote { sprintf '"%s"', join '', map sprintf("\\x%02x", $_), @_ }
 
 my %CompStruct;

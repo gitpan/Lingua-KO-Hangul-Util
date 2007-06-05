@@ -6,7 +6,7 @@ use warnings;
 use Carp;
 
 require Exporter;
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 our $PACKAGE = __PACKAGE__;
 our @ISA = qw(Exporter);
 
@@ -694,7 +694,7 @@ On request:
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2005, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001-2007, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This module is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.

@@ -235,8 +235,9 @@ ok(getHangulComposite(0x1173, 0x11AF), undef);
 ##
 BEGIN {
     use charnames qw(:full);  # for $charnames::hint_bits
-
-    $^H |= $charnames::hint_bits;
+    if (defined $charnames::hint_bits) {
+	$^H |= $charnames::hint_bits;
+    }
     $^H{charnames} = sub {
 	my $name = shift;
 	my $ord  = parseHangulName($name);

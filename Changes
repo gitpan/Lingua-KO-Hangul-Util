@@ -1,5 +1,8 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.23  Tue Jun  5 21:55:36 2007
+    - mkheader, charlist() - avoid unpack('C*') on unicode.
+
 0.22  Sun May  8 20:48:43 2005
     - added isStandardForm(), insertFiller() and getSyllableType().
     - added t/filler.t, t/std.t and t/type.t.
