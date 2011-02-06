@@ -1,14 +1,13 @@
 package Lingua::KO::Hangul::Util;
 
-use 5.006;
+use 5.006001;
 use strict;
 use warnings;
 
 require Exporter;
-require DynaLoader;
-our $VERSION = '0.23';
+
+our $VERSION = '0.24';
 our $PACKAGE = __PACKAGE__;
-our @ISA = qw(Exporter DynaLoader);
 
 our @EXPORT = qw(
     decomposeHangul
@@ -31,7 +30,13 @@ our %EXPORT_TAGS = (
     'all' => [ @EXPORT, @EXPORT_OK ],
 );
 
+##### The above part is common to XS and PP #####
+
+our @ISA = qw(Exporter DynaLoader);
+require DynaLoader;
 bootstrap Lingua::KO::Hangul::Util $VERSION;
+
+##### The below part is common to XS and PP #####
 
 sub decomposeFull ($) { decomposeJamo(decomposeSyllable(shift)) }
 
@@ -263,7 +268,7 @@ On request:
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2007, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001-2011, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This module is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.

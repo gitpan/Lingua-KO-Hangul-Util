@@ -1,4 +1,4 @@
-Lingua/KO/Hangul/Util version 0.23
+Lingua/KO/Hangul/Util version 0.24
 ==================================
 
 SYNOPSIS
@@ -48,7 +48,7 @@ COPYRIGHT AND LICENSE
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2007, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001-2011, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

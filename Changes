@@ -1,5 +1,8 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.24  Sun Feb  6 14:12:53 2011
+    - xsub: avoid pointer type mismatch.
+
 0.23  Tue Jun  5 21:55:36 2007
     - mkheader, charlist() - avoid unpack('C*') on unicode.
 

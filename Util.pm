@@ -1,14 +1,13 @@
 package Lingua::KO::Hangul::Util;
 
-use 5.006;
+use 5.006001;
 use strict;
 use warnings;
-use Carp;
 
 require Exporter;
-our $VERSION = '0.23';
+
+our $VERSION = '0.24';
 our $PACKAGE = __PACKAGE__;
-our @ISA = qw(Exporter);
 
 our @EXPORT = qw(
     decomposeHangul
@@ -30,6 +29,11 @@ our @EXPORT_OK = qw(
 our %EXPORT_TAGS = (
     'all' => [ @EXPORT, @EXPORT_OK ],
 );
+
+##### The above part is common to XS and PP #####
+
+our @ISA = qw(Exporter);
+use Carp;
 
 #####
 
@@ -463,13 +467,14 @@ sub composeSyllable ($) {
     return pack('U*', @ret);
 }
 
+##### The below part is common to XS and PP #####
+
+sub decomposeFull ($) { decomposeJamo(decomposeSyllable(shift)) }
+
 sub composeHangul ($) {
     my $ret = composeSyllable(shift);
     wantarray ? unpack('U*', $ret) : $ret;
 }
-
-
-sub decomposeFull ($) { decomposeJamo(decomposeSyllable(shift)) }
 
 1;
 __END__
@@ -694,7 +699,7 @@ On request:
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2007, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001-2011, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This module is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.

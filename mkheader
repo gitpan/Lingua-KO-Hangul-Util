@@ -9,6 +9,7 @@
 # Input: nothing
 # Output: "lkhutmp.h"
 #
+use 5.006001;
 use strict;
 use warnings;
 
@@ -232,7 +233,7 @@ for (my $c = 0x1100; $c <= 0x11FF; $c++) {
 print "};\n\n";
 
 our $StrNam = "LKHU_CompStruct";
-our $TypStr = 'U8*';
+our $TypStr = 'char*';
 our $TypLen = 'U8';
 our $TypChr = 'UV';
 
@@ -283,12 +284,17 @@ for (my $c = 0x1100; $c <= 0x11FF; $c++) {
     }
 }
 
+sub comp_struct {
+    my($a, $b, $c) = @_;
+    return "    { ($TypStr)$a, ($TypLen)$b, ($TypChr)$c },\n";
+}
+
 for my $c (sort { $a <=> $b } keys %CompStruct) {
     print "$StrNam LKHU_Comp${c} [] = {\n";
     for my $ary (@{ $CompStruct{$c} }) {
-	print "    { $ary->[0], $ary->[1], $ary->[2] },\n";
+	print comp_struct($ary->[0], $ary->[1], $ary->[2]);
     }
-    print "{ ($TypStr)NULL, ($TypLen)0, ($TypChr)0 },\n";
+    print comp_struct("NULL", 0, 0);
     print "};\n\n";
 }
 

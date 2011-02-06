@@ -1,19 +1,28 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Lingua-KO-Hangul-Util
-version:      0.23
-version_from: Util.pm
-installdirs:  site
-requires:
-    Carp:                          0
-    charnames:                     0
-    constant:                      0
-    DynaLoader:                    0
-    Exporter:                      0
-    File::Copy:                    0
-    strict:                        0
-    Test:                          0
-    warnings:                      0
-
+---
+name: Lingua-KO-Hangul-Util
+abstract: utility functions for Hangul in Unicode
+version: 0.24
+author:
+  - 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>'
+license: perl
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+requires:
+  Carp: 0
+  DynaLoader: 0
+  Exporter: 0
+  File::Copy: 0
+  Test: 0
+  bytes: 0
+  charnames: 0
+  constant: 0
+  strict: 0
+  warnings: 0
+build_requires:
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+dynamic_config: 0
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+generated_by: 'ExtUtils::MakeMaker version 6.57_05'

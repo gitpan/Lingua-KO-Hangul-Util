@@ -1,3 +1,4 @@
+require 5.006001;
 use ExtUtils::MakeMaker;
 
 my $clean = {};
@@ -15,6 +16,7 @@ WriteMakefile(
     'AUTHOR'        => 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>',
     'clean'		=> $clean,
     'PREREQ_PM'	  	=> {
+	bytes		=> 0,
 	Carp		=> 0,
 	charnames	=> 0,
 	constant	=> 0,
