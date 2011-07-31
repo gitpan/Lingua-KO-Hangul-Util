@@ -9,11 +9,12 @@ if (-f "Util.xs") {
     $clean = { FILES => 'lkhutmp.h' };
 }
 
-
 WriteMakefile(
-    'NAME'          => 'Lingua::KO::Hangul::Util',
-    'VERSION_FROM'  => 'Util.pm', # finds $VERSION
-    'AUTHOR'        => 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>',
+    'NAME'		=> 'Lingua::KO::Hangul::Util',
+    'VERSION_FROM'	=> 'Util.pm',
+    'ABSTRACT_FROM'	=> 'Util.pm',
+    'AUTHOR'		=> 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>',
+    'LICENSE'		=> 'perl',
     'clean'		=> $clean,
     'PREREQ_PM'	  	=> {
 	bytes		=> 0,
