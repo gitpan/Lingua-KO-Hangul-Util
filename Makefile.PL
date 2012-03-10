@@ -25,7 +25,6 @@ WriteMakefile(
 	Exporter	=> 0,
 	File::Copy	=> 0,
 	strict		=> 0,
-	Test		=> 0,
 	warnings	=> 0,
     },
 );

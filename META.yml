@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Lingua-KO-Hangul-Util
-version:            0.25
+version:            0.26
 abstract:           utility functions for Hangul in Unicode
 author:
     - SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
@@ -19,7 +19,6 @@ requires:
     Exporter:    0
     File::Copy:  0
     strict:      0
-    Test:        0
     warnings:    0
 no_index:
     directory:

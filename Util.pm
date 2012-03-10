@@ -6,7 +6,7 @@ use warnings;
 
 require Exporter;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 our $PACKAGE = __PACKAGE__;
 
 our @EXPORT = qw(
@@ -699,7 +699,7 @@ On request:
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2011, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001-2012, SADAHIRO Tomoyuki. Japan. All rights reserved.
 
 This module is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
