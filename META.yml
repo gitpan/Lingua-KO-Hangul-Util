@@ -1,30 +1,29 @@
---- #YAML:1.0
-name:               Lingua-KO-Hangul-Util
-version:            0.26
-abstract:           utility functions for Hangul in Unicode
+---
+abstract: 'utility functions for Hangul in Unicode'
 author:
-    - SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
-license:            perl
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
+  - 'SADAHIRO Tomoyuki <SADAHIRO@cpan.org>'
 build_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    bytes:       0
-    Carp:        0
-    charnames:   0
-    constant:    0
-    DynaLoader:  0
-    Exporter:    0
-    File::Copy:  0
-    strict:      0
-    warnings:    0
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.57_05
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+dynamic_config: 1
+generated_by: 'ExtUtils::MakeMaker version 6.66, CPAN::Meta::Converter version 2.120921'
+license: perl
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Lingua-KO-Hangul-Util
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  Carp: 0
+  DynaLoader: 0
+  Exporter: 0
+  File::Copy: 0
+  bytes: 0
+  constant: 0
+  strict: 0
+  warnings: 0
+version: 0.27

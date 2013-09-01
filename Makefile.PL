@@ -19,7 +19,6 @@ WriteMakefile(
     'PREREQ_PM'	  	=> {
 	bytes		=> 0,
 	Carp		=> 0,
-	charnames	=> 0,
 	constant	=> 0,
 	DynaLoader	=> 0,
 	Exporter	=> 0,

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-BEGIN { $| = 1; print "1..140\n"; }
+BEGIN { $| = 1; print "1..139\n"; }
 my $count = 0;
 sub ok ($;$) {
     my $p = my $r = shift;
@@ -99,7 +99,7 @@ ok(strhex(decomposeSyllable("A\x{AC00}\x{AE00}a")),
 	"0041:1100:1161:1100:1173:11AF:0061");
 
 ##
-## decomposeJamo: 7 tests
+## decomposeJamo: 8 tests
 ##
 ok(strhex(decomposeJamo("")), "");
 ok(strhex(decomposeJamo("\0")), "0000");
@@ -237,26 +237,4 @@ ok(getHangulComposite(12, 0x0300), undef);
 ok(getHangulComposite(0x0055, 0xFF00), undef);
 ok(getHangulComposite(0x1100, 0x11AF), undef);
 ok(getHangulComposite(0x1173, 0x11AF), undef);
-
-
-##
-## charnames: 1 test
-##
-BEGIN {
-    use charnames qw(:full);  # for $charnames::hint_bits
-    if (defined $charnames::hint_bits) {
-	$^H |= $charnames::hint_bits;
-    }
-    $^H{charnames} = sub {
-	my $name = shift;
-	my $ord  = parseHangulName($name);
-	return $ord ? pack('U', $ord) : "\x{FFFD}";
-    };
-}
-
-use charnames ();
-
-ok( strhex("A \N{HANGUL SYLLABLE A}\N{HANGUL SYLLABLE GA} "),
-  '0041:0020:C544:AC00:0020',
-);
 

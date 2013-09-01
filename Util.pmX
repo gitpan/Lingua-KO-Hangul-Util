@@ -6,7 +6,7 @@ use warnings;
 
 require Exporter;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 our $PACKAGE = __PACKAGE__;
 
 our @EXPORT = qw(
@@ -264,11 +264,23 @@ On request:
     insertFiller
     getSyllableType
 
+=head1 CAVEAT
+
+This module does not support Hangul jamo assigned in Unicode 5.2.0 (2009).
+
+A list of Hangul charcters this module supports:
+
+    1100..1159 ; 1.1 # [90] HANGUL CHOSEONG KIYEOK..HANGUL CHOSEONG YEORINHIEUH
+    115F..11A2 ; 1.1 # [68] HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG SSANGARAEA
+    11A8..11F9 ; 1.1 # [82] HANGUL JONGSEONG KIYEOK..HANGUL JONGSEONG YEORINHIEUH
+    AC00..D7A3 ; 2.0 # [11172] HANGUL SYLLABLE GA..HANGUL SYLLABLE HIH
+
 =head1 AUTHOR
 
 SADAHIRO Tomoyuki <SADAHIRO@cpan.org>
 
-Copyright(C) 2001-2012, SADAHIRO Tomoyuki. Japan. All rights reserved.
+Copyright(C) 2001, 2003, 2005, SADAHIRO Tomoyuki. Japan.
+All rights reserved.
 
 This module is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.

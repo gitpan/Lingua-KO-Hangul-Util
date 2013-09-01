@@ -1,5 +1,10 @@
 Revision history for Perl extension Lingua::KO::Hangul::Util.
 
+0.27  Sun Sep  1 13:11:14 2013
+    - mkheader: close FH.
+    - test.t: remove a test with charnames.
+    - pod: add CAVEAT about Unicode 5.2.0 this module does not support.
+
 0.26  Sat Mar 10 18:21:49 2012
     - avoid "use Test".
 

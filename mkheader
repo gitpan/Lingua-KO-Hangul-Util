@@ -304,5 +304,7 @@ for (my $c = 0x1100; $c <= 0x11FF; $c++) {
 }
 print "};\n\n";
 
+close FH;
+
 1;
 __END__
